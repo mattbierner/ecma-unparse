@@ -22,41 +22,7 @@
         .ParseError {
             color: red;
         }
-        
-        .node .bg {
-            fill: #D4D9B4;
-            stroke-width: 2px;
-            stroke: rgba(255, 255, 255, .25);
-        }
-        
-        .node.InnerNode .bg {
-            stroke: rgba(0, 0, 0, .5);
-        }
-        
-       .node.InnerNode:hover .bg {
-            opacity: .65;
-        }
-        
-        .node.Collapsed text {
-            font-weight: bold;
-        }
-        
-        .node.Statement .bg {
-            fill: #C0974E;
-        }
-        
-        .node.Expression .bg {
-            fill: #7A9FA2;
-        }
-        
-        .node.Identifier .bg {
-            fill: #A7AE61;
-        }
-        
-        .node.Literal .bg {
-            fill: #86575A;
-        }
-        
+
         #text_out {
             border: 1px solid black;
             padding: 0;
@@ -119,7 +85,6 @@
                         var nodes = stream.toArray(print.print(raw));
                         $('#text_out').text(nodes.join(''));
                   //  } catch (e) {
-                     //   ast = {};
                       //  $('.ParseError').text(e);
                       //  $('#parse_out').text('');
                   //  }
