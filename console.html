@@ -58,13 +58,13 @@
             paths: {
                 'ecma_unparse': 'lib/',
                 'ecma': 'dependencies/parse-ecma/lib',
-                parse: 'dependencies/parse-ecma/dependencies/parse/lib',
-                stream: 'dependencies/stream/lib'
+                'parse': 'dependencies/parse/lib',
+                'nu': 'dependencies/nu/lib'
             }
         });
         $(function () {
             require(['parse/parse',
-                'stream/stream',
+                'nu/stream',
                 'ecma/lex/lexer', 'ecma/parse/parser',
                 'ecma_unparse/unparse', 'ecma_unparse/print'],
             function(parse,

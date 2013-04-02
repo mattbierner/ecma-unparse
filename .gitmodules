@@ -4,3 +4,6 @@
 [submodule "dependencies/parse"]
 	path = dependencies/parse
 	url = https://github.com/mattbierner/parse.js
+[submodule "dependencies/nu"]
+	path = dependencies/nu
+	url = https://github.com/mattbierner/nu.git
