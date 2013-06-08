@@ -77,7 +77,7 @@
                     var input = $('textarea').val();
                     var ast;
                   //  try {
-                        var lex = lexer.lex(input);
+                        var lex = lexer.lexRegExp(input);
                         ast = parser.parseStream(lex);
                         $('.ParseError').text('');
                         
