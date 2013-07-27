@@ -1,9 +1,12 @@
-[submodule "dependencies/parse-ecma"]
-	path = dependencies/parse-ecma
-	url = https://github.com/mattbierner/parse-ecma
-[submodule "dependencies/parse"]
-	path = dependencies/parse
-	url = https://github.com/mattbierner/parse.js
 [submodule "dependencies/nu"]
 	path = dependencies/nu
 	url = https://github.com/mattbierner/nu.git
+[submodule "dependencies/ecma-ast"]
+	path = dependencies/ecma-ast
+	url = git://github.com/mattbierner/ecma-ast.git
+[submodule "resources/parse-ecma"]
+	path = resources/parse-ecma
+	url = git://github.com/mattbierner/parse-ecma.git
+[submodule "resources/parse"]
+	path = resources/parse
+	url = git://github.com/mattbierner/parse.js.git
