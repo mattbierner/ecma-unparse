@@ -59,6 +59,7 @@
                 'ecma_unparse': 'lib/',
                 'ecma_ast': 'dependencies/ecma-ast/lib',
                 'nu': 'dependencies/nu/lib',
+                'beautify': 'dependencies/js-beautify/js/lib/beautify',
                 
                 'parse': 'resources/parse/lib',
                 'ecma': 'resources/parse-ecma/lib'
@@ -84,8 +85,8 @@
                         $('.ParseError').text('');
                         
                         var raw = ecma_unparse.unparse(ast, lex);
-                        var nodes = stream.toArray(print.print(raw));
-                        $('#text_out').text(nodes.join(''));
+                        var nodes = print.print(raw);
+                        $('#text_out').text(nodes);
                   //  } catch (e) {
                       //  $('.ParseError').text(e);
                       //  $('#parse_out').text('');

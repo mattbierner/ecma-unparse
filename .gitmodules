@@ -10,3 +10,6 @@
 [submodule "resources/parse"]
 	path = resources/parse
 	url = git://github.com/mattbierner/parse.js.git
+[submodule "dependencies/js-beautify"]
+	path = dependencies/js-beautify
+	url = https://github.com/einars/js-beautify.git
