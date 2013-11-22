@@ -13,3 +13,6 @@
 [submodule "dependencies/js-beautify"]
 	path = dependencies/js-beautify
 	url = https://github.com/einars/js-beautify.git
+[submodule "resources/seshat"]
+	path = resources/seshat
+	url = git://github.com/mattbierner/seshat.git

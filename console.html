@@ -57,10 +57,13 @@
         requirejs.config({
             paths: {
                 'ecma_unparse': 'lib',
+            
+                'nu': 'dependencies/nu/dist',
                 'ecma_ast': 'dependencies/ecma-ast/lib',
-                'nu': 'dependencies/nu/lib',
                 
-                'parse': 'resources/parse/lib',
+                'parse': 'resources/parse/dist',
+                'seshat': 'resources/seshat/lib/seshat',
+                
                 'ecma': 'resources/parse-ecma/lib'
             }
         });
@@ -72,19 +75,19 @@
             function(parse,
                 stream,
                 lexer, parser,
-                ecma_unparse, print)
+                ecma_unparse, print, serialization)
             {
                 var lexOut = $('.LexOut');
                 $('button').click(function () {
                     var input = $('textarea').val();
                     var ast;
                   //  try {
-                        var lex = lexer.lexRegExp(input);
-                        ast = parser.parseStream(lex);
-                        $('.ParseError').text('');
+                        ast = parser.parse(input);
                         
-                        var raw = ecma_unparse.unparse(ast, lex);
+                        var raw = ecma_unparse.unparse(ast);
                         var nodes = print.print(raw);
+                        
+                        $('.ParseError').text('');
                         $('#text_out').text(nodes);
                   //  } catch (e) {
                       //  $('.ParseError').text(e);

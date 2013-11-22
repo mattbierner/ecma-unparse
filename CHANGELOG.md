@@ -1,5 +1,9 @@
 # ChangeLog #
 
+## 3.1.0 - Nov 22, 2013
+* Updated to use `ecma_ast` V2.2 nodes.
+* Pretty printer wraps longer lines.
+
 ## 3.0.0 - Oct 10, 2013
 * Added 3rd party pretty printer.
 * Fixed function expressions sometimes generating incorrectly.
