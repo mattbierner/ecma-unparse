@@ -9,7 +9,7 @@
         "url": "git://github.com/mattbierner/ecma-unparse.git"
     },
     "keywords": [
-        "ecmascript"
+        "ecmascript",
        "unparse"],
 
     "main": "index.js",
