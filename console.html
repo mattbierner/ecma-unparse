@@ -58,21 +58,23 @@
             paths: {
                 'ecma_unparse': 'lib',
             
-                'nu': 'dependencies/nu/dist',
+                'nu-stream': 'dependencies/nu/dist',
+                
                 'ecma_ast': 'dependencies/ecma-ast/lib',
                 
-                'parse': 'resources/parse/dist',
-                'seshat': 'resources/seshat/lib/seshat',
+                'bennu': 'resources/parse/dist',
+                'seshet': 'resources/seshat/dist/seshet',
+                'seshat': 'resources/seshat/dist/seshet',
                 
                 'ecma': 'resources/parse-ecma/lib'
             }
         });
         $(function () {
-            require(['parse/parse',
-                'nu/stream',
+            require([
+                'nu-stream/stream',
                 'ecma/lex/lexer', 'ecma/parse/parser',
                 'ecma_unparse/unparse', 'ecma_unparse/print'],
-            function(parse,
+            function(
                 stream,
                 lexer, parser,
                 ecma_unparse, print, serialization)
