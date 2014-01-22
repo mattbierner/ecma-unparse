@@ -62,7 +62,7 @@
                 
                 'ecma_ast': 'dependencies/ecma-ast/lib',
                 
-                'bennu': 'resources/parse/dist',
+                'bennu': 'resources/bennu/dist',
                 'seshet': 'resources/seshat/dist/seshet',
                 'seshat': 'resources/seshat/dist/seshet',
                 
@@ -76,7 +76,8 @@
                 'ecma_unparse/unparse', 'ecma_unparse/print'],
             function(
                 stream,
-                lexer, parser,
+                lexer,
+                parser,
                 ecma_unparse, print, serialization)
             {
                 var lexOut = $('.LexOut');

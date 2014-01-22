@@ -16,3 +16,6 @@
 [submodule "resources/seshat"]
 	path = resources/seshat
 	url = git://github.com/mattbierner/seshat.git
+[submodule "resources/bennu"]
+	path = resources/bennu
+	url = git@github.com:mattbierner/bennu.git
