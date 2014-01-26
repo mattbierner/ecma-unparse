@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 3.1.1 - January 26, 2014
+* Named the exports for js-beautify file for r.js .
+
 ## 3.1.0 - Nov 22, 2013
 * Updated to use `ecma_ast` V2.2 nodes.
 * Pretty printer wraps longer lines.
