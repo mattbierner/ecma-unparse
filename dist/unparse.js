@@ -1,7 +1,3 @@
-/*
- * THIS FILE IS AUTO GENERATED from 'lib/unparse.kep'
- * DO NOT EDIT
-*/
 define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/token", "ecma-ast/node"], (function(
     require, exports, stream, gen, token, node) {
     "use strict";

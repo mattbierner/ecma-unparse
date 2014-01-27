@@ -2,7 +2,7 @@
 var __o = require("nu-stream")["stream"],
     foldl = __o["foldl"],
     map = __o["map"],
-    beautify = require("./beautify"),
+    js_beautify = require("./beautify"),
     print, join = foldl.bind(null, (function(x, y) {
         return (x + y);
     }), ""),
@@ -25,7 +25,8 @@ var __o = require("nu-stream")["stream"],
         "preserve_newlines": false,
         "wrap_line_length": 120,
         "break_chained_methods": true
-    });
+    }),
+    beautify = (js_beautify.js_beautify || js_beautify);
 (print = (function(f, g) {
     return (function(x) {
         return f(g(x));

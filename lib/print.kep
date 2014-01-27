@@ -2,7 +2,7 @@ package (
     print)
 with
     import 'nu-stream::stream' {foldl map},
-    import './beautify' beautify
+    import './beautify' js_beautify
 in {
 
 var join = (foldl, (+), '');
@@ -30,6 +30,10 @@ var options = {
     "wrap_line_length": 120,
     "break_chained_methods": true
 };
+
+var beautify = (js_beautify.js_beautify || js_beautify);
+
+
 
 /**
  * Transforms a stream of tokens to a string.

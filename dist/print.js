@@ -1,4 +1,4 @@
-define(["require", "exports", "nu-stream/stream", "./beautify"], (function(require, exports, __o, beautify) {
+define(["require", "exports", "nu-stream/stream", "./beautify"], (function(require, exports, __o, js_beautify) {
     "use strict";
     var foldl = __o["foldl"],
         map = __o["map"],
@@ -24,7 +24,8 @@ define(["require", "exports", "nu-stream/stream", "./beautify"], (function(requi
             "preserve_newlines": false,
             "wrap_line_length": 120,
             "break_chained_methods": true
-        });
+        }),
+        beautify = (js_beautify.js_beautify || js_beautify);
     (print = (function(f, g) {
         return (function(x) {
             return f(g(x));

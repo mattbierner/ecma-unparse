@@ -1,7 +1,3 @@
-/*
- * THIS FILE IS AUTO GENERATED from 'lib/unparse.kep'
- * DO NOT EDIT
-*/
 "use strict";
 var stream = require("nu-stream")["stream"],
     gen = require("nu-stream")["gen"],

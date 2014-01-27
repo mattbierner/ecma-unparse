@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 3.2.0 - January 27, 2014
+* Corrected import of Beautify for node.
+
 ## 3.2.0 - January 26, 2014
 * Added node package
 
