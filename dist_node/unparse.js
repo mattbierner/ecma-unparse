@@ -1,3 +1,7 @@
+/*
+ * THIS FILE IS AUTO GENERATED from 'lib/unparse.kep'
+ * DO NOT EDIT
+*/
 "use strict";
 var stream = require("nu-stream")["stream"],
     gen = require("nu-stream")["gen"],
@@ -82,13 +86,14 @@ var stream = require("nu-stream")["stream"],
     variableDeclarator = (function(id, init) {
         return declaration(id, (init ? seq(whitespace(), punctuator("="), whitespace(), init) : stream.end));
     }),
-    Expression = (function(id, params, body) {
-        return expression(punctuator("("), keyword(""), (id ? seq(whitespace(), id) : stream.end), punctuator("("),
-            joins(params, seq(punctuator(","), whitespace())), punctuator(")"), whitespace(), body, punctuator(")")
-        );
+    functionExpression = (function(id, params, body) {
+        return expression(punctuator("("), keyword("function"), (id ? seq(whitespace(), id) : stream.end),
+            punctuator("("), joins(params, seq(punctuator(","), whitespace())), punctuator(")"), whitespace(), body,
+            punctuator(")"));
     }),
-    Declaration = (function(id, params, body) {
-        return Expression(id, params, body);
+    functionDeclaration = (function(id, params, body) {
+        return declaration(keyword("function"), whitespace(), punctuator("("), joins(params, seq(punctuator(","),
+            whitespace())), punctuator(")"), whitespace(), body);
     }),
     switchCase = (function(test, consequent) {
         return seq((test ? seq(keyword("case"), whitespace(), test) : keyword("default")), punctuator(":"),
@@ -287,9 +292,10 @@ var stream = require("nu-stream")["stream"],
                 return objectSetExpression(_unparse(node.key), node.value.params.map(_unparse), _unparse(node.value
                     .body));
             case "FunctionExpression":
-                return Expression((node.id ? _unparse(node.id) : null), node.params.map(_unparse), _unparse(node.body));
+                return functionExpression((node.id ? _unparse(node.id) : null), node.params.map(_unparse), _unparse(
+                    node.body));
             case "FunctionDeclaration":
-                return Declaration(_unparse(node.id), node.params.map(_unparse), _unparse(node.body));
+                return functionDeclaration(_unparse(node.id), node.params.map(_unparse), _unparse(node.body));
             case "Program":
                 return program(node.body.map(_unparse));
             case "VariableDeclaration":

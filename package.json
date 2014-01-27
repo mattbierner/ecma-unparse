@@ -1,6 +1,6 @@
 {
     "name": "ecma-unparse",
-    "version": "3.2.0",
+    "version": "3.2.1",
     "description": "Simple ECMAscript AST to text transform",
     "author": "Matt Bierner",
     "license": "MIT",
