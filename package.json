@@ -1,6 +1,6 @@
 {
     "name": "ecma-unparse",
-    "version": "3.1.1",
+    "version": "3.2.0",
     "description": "Simple ECMAscript AST to text transform",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -24,6 +24,6 @@
     ],
     "dependencies": {
         "nu-stream": "3.1.x",
-        "ecma-ast": "2.3.x"
+        "ecma-ast": "2.4.x"
     }
 }

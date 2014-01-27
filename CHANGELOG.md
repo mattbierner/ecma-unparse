@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 3.2.0 - January 26, 2014
+* Added node package
+
 ## 3.1.1 - January 26, 2014
 * Named the exports for js-beautify file for r.js .
 

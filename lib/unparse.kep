@@ -1,14 +1,15 @@
 /**
  * @fileOverview Transforming an AST into a stream of tokens.
  */
-define(['nu-stream/stream',
-        'nu-stream/gen',
-        'ecma_ast/token',
-        'ecma_ast/node'],
-function(stream,
-        gen,
-        token,
-        node){
+package (
+    unparse)
+with
+    import 'nu-stream::stream' stream,
+    import 'nu-stream::gen' gen,
+    
+    import 'ecma-ast::token' token,
+    import 'ecma-ast::node' node
+in {
 
 var slice = Array.prototype.slice;
 
@@ -17,132 +18,134 @@ var slice = Array.prototype.slice;
 /**
  * Joins an array of objects into a stream with a given joiner object.
  */
-var join = function(arr, joiner) {
-    if (arr.length === 0) {
+var join = \arr, joiner -> {
+    if (arr.length === 0)
         return stream.end;
-    } else if (arr.length === 1) {
+    else if (arr.length === 1) 
         return arr[0];
-    } else {
+    else 
         return stream.append(arr[0], stream.cons(joiner, join(arr.slice(1), joiner)));
-    }
 };
 
 /**
  * Joins an array of objects into a stream with a stream joiner object.
  */
-var joins = function(arr, joiner) {
-    if (arr.length === 0) {
+var joins = \arr, joiner -> {
+    if (arr.length === 0 ) 
         return stream.end;
-    } else if (arr.length === 1) {
+    else if (arr.length === 1 )
         return arr[0];
-    } else {
+    else
         return stream.append(arr[0], stream.append(joiner, joins(arr.slice(1), joiner)));
-    }
 };
 
 /* Token
  ******************************************************************************/
-var keyword = function(x) {
-    return new token.KeywordToken(null, x);
-};
+var keyword = \x -> 
+    new token.KeywordToken(null, x);
 
-var identifier = function(x) {
-    return new token.IdentifierToken(null, x);
-};
+var lineTerminator = \x ->
+    new token.LineTerminatorToken(null, x || '\n');
 
-var lineTerminator = function(x) {
-    return new token.LineTerminatorToken(null, (x === undefined ? '\n' : x));
-};
+var punctuator = \x ->
+    new token.PunctuatorToken(null, x);
 
-var punctuator = function(x) {
-    return new token.PunctuatorToken(null, x);
-};
-
-var whitespace = function(x) {
-    return new token.WhitespaceToken(null, (x === undefined ? ' ' : x));
-};
+var whitespace = \x ->
+    new token.WhitespaceToken(null, x || ' ');
 
 /* 
  ******************************************************************************/
-var seq = function(/*...*/) {
-    if (arguments.length === 0) {
+var seq = \args(...) -> {
+    if (args.length === 0)
         return stream.end;
-    }
     
-    var first = arguments[0],
-        rest = seq.apply(undefined, slice.call(arguments, 1));
+    var first = args[0],
+        rest = seq.apply(undefined, slice.call(args, 1));
 
-    if (first === undefined || stream.isEmpty(first)) {
+    if (first === undefined || stream.isEmpty(first))
         return rest;
-    } else if (stream.isStream(first)) {
+    else if (stream.isStream(first))
         return stream.append(first, rest);
-    } else {
-        return stream.cons(first, rest)
-    }
+    else
+        return stream.cons(first, rest);
 };
 
 /* 
  ******************************************************************************/
-var statement = function(/*...*/) {
-    return seq(
-        seq.apply(undefined, arguments),
+var statement = \args(...) ->
+    seq(
+        seq.apply(undefined, args),
         lineTerminator());
-};
 
-var expression = function(/*...*/) {
-    return seq.apply(undefined, arguments);
-};
+var expression = \args(...) ->
+    seq.apply(undefined, args);
 
-var declaration = function(/*...*/) {
-    return seq.apply(undefined, arguments);
-};
 
-var clause = function(/*...*/) {
-    return seq(
-        seq.apply(undefined, arguments),
+var declaration = \args(...) ->
+    seq.apply(undefined, args);
+
+var clause = \args(...) ->
+    seq(
+        seq.apply(undefined, args),
         lineTerminator());
-};
 
-var value = function(/*...*/) {
-    return seq.apply(undefined, arguments);
-};
+
+var value = \args(...) ->
+    seq.apply(undefined, args);
+
+/* Value Unparsers
+ ******************************************************************************/
+var identifier = \name ->
+    value(new token.IdentifierToken(null, name));
+
+var string = \x ->
+     value(new token.StringToken(null, x));
+
+var number= \x ->
+    value(new token.NumberToken(null, x));
+
+var nil = \x ->
+    value(new token.NullToken(null, x));
+
+var boolean = \x ->
+    value(new token.BooleanToken(null, x));
+
+var regexp = \x ->
+    value(new token.RegularExpressionToken(null, x));
 
 
 /* Unparsing
  ******************************************************************************/
-var program = function(body) {
-    return seq.apply(undefined, body);
-}; 
+var program = \body ->
+    seq.apply(undefined, body);
 
-var variableDeclaration = function(declarations) {
-    return statement(
+var variableDeclaration = \declarations ->
+    statement(
         keyword('var'),
         whitespace(),
         join(declarations, punctuator(',')),
         punctuator(';'));
-};
 
-var variableDeclarator = function(id, init) {
-    return declaration(
+var variableDeclarator = \id, init ->
+    declaration(
         id,
-        (init ?
-            seq(
+        ?init
+            :seq(
                 whitespace(),
                 punctuator('='),
                 whitespace(),
-                init) :
-            stream.end));
-};
+                init)
+            :stream.end);
 
-var functionExpression = function(id, params, body) {
-    return expression(
+var Expression = \id, params, body ->
+    expression(
         punctuator('('),
-        keyword('function'),
-        (id ?
-            seq(
+        keyword(''),
+        ?id
+            :seq(
                 whitespace(),
-                id):
-            stream.end),
+                id)
+            :stream.end,
         punctuator('('),
         joins(params, seq(
             punctuator(','),
@@ -151,112 +154,101 @@ var functionExpression = function(id, params, body) {
         whitespace(),
         body,
         punctuator(')'));
-};
 
-var functionDeclaration = function(id, params, body) {
-    return functionExpression(id, params, body);
-};
 
-var switchCase = function(test, consequent) {
-    return seq(
-        (test ?
-            seq(
+var Declaration = \id, params, body ->
+    Expression(id, params, body);
+
+var switchCase = \test, consequent ->
+    seq(
+        ?test
+            :seq(
                 keyword('case'),
                 whitespace(),
-                test) :
-            keyword('default')),
+                test)
+            :keyword('default'),
         punctuator(':'),
             lineTerminator(),
             seq.apply(undefined, consequent));
-};
 
-var catchClause = function(param, body) {
-    return seq(
+var catchClause = \param, body -> 
+    seq(
         keyword('catch'),
         punctuator('('),
         param,
         punctuator(')'),
         body);
-};
 
 /* Statement Unparsing
  ******************************************************************************/
-var emptyStatement = function(){
-    return statement(
+var emptyStatement = \() ->
+    statement(
         punctuator(';'));
-};
 
-var debuggerStatement = function() {
-    return statement(
+var debuggerStatement = \() ->
+    statement(
         keyword('debugger'),
         punctuator(';'));
-};
 
-var blockStatement = function(body) {
-    return statement(
+var blockStatement = \body ->
+    statement(
         punctuator('{'),
         lineTerminator(),
         seq.apply(undefined, body),
         punctuator('}'));
-};
 
-var expressionStatement = function(expression) {
-    return statement(
+var expressionStatement = \expression -> 
+    statement(
         expression,
         punctuator(';'));
-};
 
-var ifStatement = function(test, consequent, alternate) {
-    return statement(
+var ifStatement = \test, consequent, alternate ->
+    statement(
         keyword('if'),
         whitespace(),
         punctuator('('),
         test,
         punctuator(')'),
         consequent,
-        (!alternate ? stream.end :
-            seq(
+        ?!alternate
+            :stream.end
+            :seq(
                 keyword('else'),
                 whitespace(),
-                alternate)));
-};
+                alternate));
 
-var labeledStatement = function(label, body) {
-    return statement(
+var labeledStatement = \label, body ->
+    statement(
         identifier(label),
         punctuator(':'),
         body);
-};
 
-var breakStatement = function(label) {
-    return statement(
+var breakStatement = \label ->
+    statement(
         keyword('break'),
         whitespace(),
         label,
         punctuator(';'));
-};
 
-var continueStatement = function(label) {
-    return statement(
+var continueStatement = \label ->
+    statement(
         keyword('continue'),
         whitespace(),
         label,
         punctuator(';'));
-};
 
-var withStatement = function(obj, body) {
-    return statement(
+var withStatement = \obj, body ->
+    statement(
         keyword('with'),
         punctuator('('),
-        object,
+        obj,
         punctuator(')'),
         punctuator('{'),
         body,
         punctuator('}'));
-};
 
-var switchStatement = function(discriminant, cases) {
-    return statement(
+var switchStatement = \discriminant, cases ->
+    statement(
         keyword('switch'),
         punctuator('('),
         discriminant,
@@ -265,49 +257,44 @@ var switchStatement = function(discriminant, cases) {
         lineTerminator(),
         seq.apply(undefined, cases),
         punctuator('}'));
-};
 
-var returnStatement = function(argument) {
-    return statement(
+var returnStatement = \argument ->
+    statement(
         keyword('return'),
         whitespace(),
         argument,
         punctuator(';'));
-};
 
-var throwStatement = function(argument) {
-    return statement(
+var throwStatement = \argument ->
+    statement(
         keyword('throw'),
         whitespace(),
         argument,
         punctuator(';'));
-};
 
-var tryStatement = function(block, handler, finalizer) {
-    return statement(
+var tryStatement = \block, handler, finalizer ->
+    statement(
         keyword('try'),
         block,
-        (handler ?
-            handler:
-            stream.end),
-        (finalizer ?
-            seq(
+        ?handler
+            :handler
+            :stream.end,
+        ?finalizer
+            :seq(
                 keyword('finally'),
-                finalizer) :
-            stream.end));
-};
+                finalizer)
+            :stream.end);
 
-var whileStatement = function(test, body) { 
-    return statement(
+var whileStatement = \test, body -> 
+    statement(
         keyword('while'),
         punctuator('('),
         test,
         punctuator(')'),
         body);
-};
 
-var doWhileStatement = function(body, test) {
-    return statement(
+var doWhileStatement = \body, test ->
+    statement(
         keyword('do'),
         body,
         keyword('while'),
@@ -315,10 +302,9 @@ var doWhileStatement = function(body, test) {
         test,
         punctuator(')'),
         punctuator(';'));
-};
 
-var forDeclarationStatement = function(init, test, update, body) {
-    return statement(
+var forDeclarationStatement = \init, test, update, body ->
+    statement(
         keyword('for'),
         punctuator('('),
         init,
@@ -328,10 +314,9 @@ var forDeclarationStatement = function(init, test, update, body) {
         update,
         punctuator(')'),
         body);
-};
 
-var forStatement = function(init, test, update, body) {
-    return statement(
+var forStatement = \init, test, update, body ->
+    statement(
         keyword('for'),
         punctuator('('),
         init,
@@ -341,10 +326,9 @@ var forStatement = function(init, test, update, body) {
         update,
         punctuator(')'),
         body);
-};
 
-var forInStatement = function(left, right) {
-    return statement(
+var forInStatement = \left, right ->
+    statement(
         keyword('for'),
         punctuator('('),
         node.left,
@@ -352,31 +336,27 @@ var forInStatement = function(left, right) {
         node.right,
         punctuator(')'),
         node.body);
-};
-
 
 
 /* Expression Unparsing
  ******************************************************************************/
-var thisExpression = function() {
-    return expression(
+var thisExpression = \() ->
+    expression(
         keyword('this'));
-};
 
-var sequenceExpression = function(expressions) {
-    return expression(
+
+var sequenceExpression = \expressions -> 
+    expression(
         join(expressions, punctuator(',')));
-};
 
-var unaryExpression = function(op, arg) {
-    return expression(
+var unaryExpression = \op, arg ->
+    expression(
         op,
         whitespace(),
         arg);
-};
 
-var binaryExpression = function(op, left, right) {
-    return expression(
+var binaryExpression = \op, left, right ->
+    expression(
         punctuator('('),
         left,
         whitespace(),
@@ -384,16 +364,14 @@ var binaryExpression = function(op, left, right) {
         whitespace(),
         right,
         punctuator(')'));
-};
     
-var updateExpression = function(op, arg, prefix){
-    return (prefix ?
-        expression(op, arg) :
-        expression(arg, op));
-};
+var updateExpression = \op, arg, prefix ->
+    ?prefix
+        :expression(op, arg)
+        :expression(arg, op);
 
-var conditionalExpression = function(test, consequent, alternate) {
-    return expression(
+var conditionalExpression = \test, consequent, alternate ->
+    expression(
         punctuator('('),
         test,
         whitespace(),
@@ -405,75 +383,69 @@ var conditionalExpression = function(test, consequent, alternate) {
         whitespace(),
         alternate,
         punctuator(')'));
-};
 
-var newExpression = function(callee, args) {
-    return expression(
+var newExpression = \callee, args ->
+    expression(
         keyword('new'),
         whitespace(),
         punctuator('('),
         callee,
         punctuator(')'),
-        (args ?
-            seq(
+        ?args
+            :seq(
                 punctuator('('),
                 joins(args, seq(
                     punctuator(','),
                     whitespace())),
-                punctuator(')')) :
-            stream.end));
-};
+                punctuator(')'))
+            :stream.end);
 
-var callExpression = function(callee, args) {
-    return expression(
+var callExpression = \callee, args ->
+    expression(
         callee,
         punctuator('('),
         joins(args, seq(
             punctuator(','),
             whitespace())),
         punctuator(')'));
-};
 
-var memberExpression = function(obj, property, computed) {
-    return (computed ?
-        expression(
+var memberExpression = \obj, property, computed ->
+    ?computed
+        :expression(
             obj,
             punctuator('['),
             property,
-            punctuator(']')) :
-        expression(
+            punctuator(']'))
+        :expression(
             obj,
             punctuator('.'),
-                property));
-};
+                property);
  
-var arrayExpression = function(elements) {
-    return expression(
+var arrayExpression = \elements ->
+    expression(
         punctuator('['),
         joins(elements, seq(
             punctuator(','),
             whitespace())),
         punctuator(']'));
-};
 
-var objectExpression = function(props) {
-     return expression(
+var objectExpression = \props ->
+     expression(
         punctuator('('),
         punctuator('{'),
-        (props && props.length ? 
-            seq(
+        ?props && props.length
+            :seq(
                 lineTerminator(),
                 joins(props, seq(
                     punctuator(','),
                     lineTerminator())),
-                lineTerminator()) :
-            stream.end),
+                lineTerminator())
+            :stream.end,
         punctuator('}'),
         punctuator(')'));
-};
 
-var objectGetExpression = function(key, body) {
-    return seq(
+var objectGetExpression = \key, body ->
+    seq(
         identifier('get'),
         whitespace(),
         key,
@@ -481,10 +453,9 @@ var objectGetExpression = function(key, body) {
         punctuator(')'),
         whitespace(),
         body);
-};
 
-var objectSetExpression = function(key, params, body) {
-    return seq(
+var objectSetExpression = \key, params, body ->
+    seq(
         identifier('set'),
         whitespace(),
         key,
@@ -493,41 +464,14 @@ var objectSetExpression = function(key, params, body) {
         punctuator(')'),
         whitespace(),
         body);
-};
 
-var objectValueExpression = function(key, value) {
-    return seq(
+var objectValueExpression = \key, value ->
+    seq(
         key,
         punctuator(':'),
         whitespace(),
         value);
-};
 
-/* Value Unparsers
- ******************************************************************************/
-var identifier = function(name) {
-    return value(new token.IdentifierToken(null, name));
-}
-
-var string = function(x) {
-    return value(new token.StringToken(null, x));
-};
-
-var number= function(x) {
-    return value(new token.NumberToken(null, x));
-};
-
-var nil = function(x) {
-    return value(new token.NullToken(null, x));
-};
-
-var boolean = function(x) {
-    return value(new token.BooleanToken(null, x));
-};
-
-var regexp = function(x) {
-    return value(new token.RegularExpressionToken(null, x));
-};
 
 
 /* Unparsing
@@ -535,18 +479,17 @@ var regexp = function(x) {
 /**
  * Transforms a AST node to a stream of tokens.
  */
-var _unparse = function(node) {
-    if (!node) {
+var _unparse = \node -> {
+    if (!node)
         return stream.end;
-    }
         
     switch (node.type) {
 // clauses
     case 'SwitchCase':
         return switchCase(
-            (node.test ?
-                _unparse(node.test) :
-                null),
+            ?node.test
+                :_unparse(node.test)
+                :null,
             node.consequent.map(_unparse));
    
     case 'CatchClause':
@@ -556,7 +499,7 @@ var _unparse = function(node) {
     
 // Statement
     case 'EmptyStatement':
-        return emptyStatement()
+        return emptyStatement();
         
     case 'DebuggerStatement':
         return debuggerStatement();
@@ -573,9 +516,9 @@ var _unparse = function(node) {
         return ifStatement(
             _unparse(node.test),
             _unparse(node.consequent),
-            (node.alternate ?
-                _unparse(node.alternate) :
-                null));
+            ?node.alternate
+                :_unparse(node.alternate)
+                :null);
         
     case 'LabeledStatement':
         return labeledStatement(
@@ -611,12 +554,12 @@ var _unparse = function(node) {
     case 'TryStatement':
         return tryStatement(
             _unparse(node.block),
-            (node.handler ?
-                _unparse(node.handler) :
-                null),
-            (node.finalizer ?
-                _unparse(node.finalizer) :
-                null));
+            ?node.handler
+                :_unparse(node.handler)
+                :null,
+            ?node.finalizer
+                :_unparse(node.finalizer)
+                :null);
     
     case 'WhileStatement':
         return whileStatement(
@@ -629,13 +572,13 @@ var _unparse = function(node) {
             _unparse(node.test));
     
     case 'ForStatement':
-        var init = (node.init ? _unparse(node.init) : null);
-        var test = (node.test ? _unparse(node.test) : null);
-        var update = (node.update ? _unparse(node.update) : null);
+        var init = ?node.init :_unparse(node.init) :null;
+        var test = ?node.test :_unparse(node.test) :null;
+        var update = ?node.update :_unparse(node.update) :null;
         var body = _unparse(node.body);
-        return (node.init && node.init.type ===  "VariableDeclaration" ?
-            forDeclarationStatement(init, test, update, body) :
-            forStatement(init, test, update, body));
+        return ?node.init && node.init.type ===  "VariableDeclaration"
+            :forDeclarationStatement(init, test, update, body)
+            :forStatement(init, test, update, body);
         
     case 'ForInStatement':
         return forInStatement(
@@ -678,9 +621,9 @@ var _unparse = function(node) {
     case 'NewExpression':
         return newExpression(
             _unparse(node.callee),
-            (node.args ?
-                node.args.map(_unparse) :
-                null));
+            ?node.args
+                :node.args.map(_unparse)
+                :null);
     
     case 'CallExpression':
         return callExpression(
@@ -710,15 +653,15 @@ var _unparse = function(node) {
 
 // Function
     case 'FunctionExpression':
-        return functionExpression(
-            (node.id ?
-                _unparse(node.id) :
-                null),
+        return Expression(
+            ?node.id
+                :_unparse(node.id)
+                :null,
             node.params.map(_unparse),
             _unparse(node.body));
         
     case 'FunctionDeclaration':
-        return functionDeclaration(
+        return Declaration(
             _unparse(node.id),
             node.params.map(_unparse),
             _unparse(node.body));
@@ -734,9 +677,9 @@ var _unparse = function(node) {
     case 'VariableDeclarator':
         return variableDeclarator(
             _unparse(node.id),
-            (node.init ?
-                _unparse(node.init) :
-                null));
+            ?node.init
+                :_unparse(node.init)
+                :null);
 
 // Value
     case 'Identifier':
@@ -751,7 +694,7 @@ var _unparse = function(node) {
         case 'null':
             return nil(node.value);
         case 'boolean':
-            return boolean(node.value)
+            return boolean(node.value);
         case 'regexp':
             return regexp(node.value);
         default:
@@ -776,46 +719,6 @@ var _unparse = function(node) {
  * 
  * @return Stream of parse-ecma lex tokens.
  */
-var unparse = (function(){
-    var indent = function(ind, s) {
-        if (stream.isEmpty(s)) {
-            return s;
-        }
-        
-        var first = stream.first(s);
-        var rest = stream.rest(s);
-        
-        if (first.type === 'LineTerminator') {
-            if (!stream.isEmpty(rest)) {
-                var next = stream.first(rest);
-                if (next.type === 'Punctuator' && next.value === '}') {
-                    var padding = gen.repeat(ind - 4, whitespace());
-                    return stream.cons(first, stream.append(padding, indent(ind, rest)));
-                }
-            }
-            var padding = gen.repeat(ind, whitespace());
-            return stream.cons(first, stream.append(padding, indent(ind, rest)));
-        }
-        
-        if (first.type === 'Punctuator') {
-            switch  (first.value) {
-            case '{': ind += 4; break;
-            case '}': ind -= 4; break;
-            }
-        }
-        
-        return stream.stream(first, indent.bind(undefined, ind, stream.rest(s)));
-    };
-    
-    return function(node) {
-        return indent(0, _unparse(node));
-    };
-}());
+unparse = _unparse;
 
-/* Export
- ******************************************************************************/
-return {
-    'unparse': unparse
-};
-
-});
+}

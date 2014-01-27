@@ -1,4 +1,4 @@
 module.exports = {
-    'print': require('./lib/print'),
-    'unparse': require('./lib/unparse')
+    'print': require('./dist_node/print'),
+    'unparse': require('./dist_node/unparse')
 };
