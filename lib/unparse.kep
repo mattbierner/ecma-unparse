@@ -22,9 +22,9 @@ var join = \arr, joiner -> {
     if (arr.length === 0)
         return stream.end;
     else if (arr.length === 1) 
-        return arr[0];
+        return arr.(0);
     else 
-        return stream.append(arr[0], stream.cons(joiner, join(arr.slice(1), joiner)));
+        return stream.append(arr.(0), stream.cons(joiner, join(arr.slice(1), joiner)));
 };
 
 /**
@@ -34,9 +34,9 @@ var joins = \arr, joiner -> {
     if (arr.length === 0) 
         return stream.end;
     else if (arr.length === 1)
-        return arr[0];
+        return arr.(0);
     else
-        return stream.append(arr[0], stream.append(joiner, joins(arr.slice(1), joiner)));
+        return stream.append(arr.(0), stream.append(joiner, joins(arr.slice(1), joiner)));
 };
 
 /* Token
@@ -59,7 +59,7 @@ var seq = \args(...) -> {
     if (args.length === 0)
         return stream.end;
     
-    var first = args[0],
+    var first = args.(0),
         rest = seq.apply(undefined, slice.call(args, 1));
 
     if (first === undefined || stream.isEmpty(first))
@@ -359,9 +359,11 @@ var sequenceExpression = \expressions ->
 
 var unaryExpression = \op, arg ->
     expression(
+        punctuator('('),
         op,
         whitespace(),
-        arg);
+        arg,
+        punctuator(')'));
 
 var binaryExpression = \op, left, right ->
     expression(

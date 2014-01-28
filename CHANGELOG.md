@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 3.2.4 - January 27, 2014
+* Fixed unary expressions potentially generating incorrectly.
+
 ## 3.2.0 - January 27, 2014
 * Corrected import of Beautify for node.
 

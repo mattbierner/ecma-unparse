@@ -166,7 +166,7 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
             return expression(join(expressions, punctuator(",")));
         }),
         unaryExpression = (function(op, arg) {
-            return expression(op, whitespace(), arg);
+            return expression(punctuator("("), op, whitespace(), arg, punctuator(")"));
         }),
         binaryExpression = (function(op, left, right) {
             return expression(punctuator("("), left, whitespace(), op, whitespace(), right, punctuator(")"));

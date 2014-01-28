@@ -5,9 +5,9 @@ with
     import './beautify' js_beautify
 in {
 
-var join = (foldl, (+), '');
+var join = foldl@((+), '');
 
-var mapTokens = (map, \x -> {
+var mapTokens = map@\x -> {
     if (!x)
         return '';
     
@@ -23,7 +23,7 @@ var mapTokens = (map, \x -> {
     default:
         return x.value;
     }
-});
+};
 
 var options = {
     'preserve_newlines': false,
