@@ -7,9 +7,6 @@
 [submodule "resources/parse-ecma"]
 	path = resources/parse-ecma
 	url = https://github.com/mattbierner/parse-ecma.git
-[submodule "resources/parse"]
-	path = resources/parse
-	url = https://github.com/mattbierner/parse.js.git
 [submodule "dependencies/js-beautify"]
 	path = dependencies/js-beautify
 	url = https://github.com/einars/js-beautify.git
@@ -19,3 +16,6 @@
 [submodule "resources/bennu"]
 	path = resources/bennu
 	url = https://github.com/mattbierner/bennu.git
+[submodule "resources/seshet"]
+	path = resources/seshet
+	url = https://github.com/mattbierner/seshet.git
