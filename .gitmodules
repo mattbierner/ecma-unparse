@@ -10,9 +10,6 @@
 [submodule "dependencies/js-beautify"]
 	path = dependencies/js-beautify
 	url = https://github.com/einars/js-beautify.git
-[submodule "resources/seshat"]
-	path = resources/seshat
-	url = https://github.com/mattbierner/seshat.git
 [submodule "resources/bennu"]
 	path = resources/bennu
 	url = https://github.com/mattbierner/bennu.git
