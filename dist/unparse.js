@@ -1,14 +1,19 @@
-define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/token", "ecma-ast/node"], (function(
-    require, exports, stream, gen, token, node) {
+/*
+ * THIS FILE IS AUTO GENERATED from 'lib/unparse.kep'
+ * DO NOT EDIT
+*/
+define(["require", "exports", "nu-stream/stream", "ecma-ast/token", "ecma-ast/node"], (function(require, exports,
+    stream, token, node) {
     "use strict";
-    var unparse, slice = Array.prototype.slice,
+    var NIL = stream["NIL"],
+        unparse, slice = Array.prototype.slice,
         join = (function(arr, joiner) {
-            if ((arr.length === 0)) return stream.end;
+            if ((arr.length === 0)) return NIL;
             else if ((arr.length === 1)) return arr[0];
             else return stream.append(arr[0], stream.cons(joiner, join(arr.slice(1), joiner)));
         }),
         joins = (function(arr, joiner) {
-            if ((arr.length === 0)) return stream.end;
+            if ((arr.length === 0)) return NIL;
             else if ((arr.length === 1)) return arr[0];
             else return stream.append(arr[0], stream.append(joiner, joins(arr.slice(1), joiner)));
         }),
@@ -16,17 +21,19 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
             return new(token.KeywordToken)(null, x);
         }),
         lineTerminator = (function(x) {
-            return new(token.LineTerminatorToken)(null, (x || "\n"));
+            return new(token.LineTerminatorToken)(null, x);
         }),
         punctuator = (function(x) {
             return new(token.PunctuatorToken)(null, x);
         }),
         whitespace = (function(x) {
-            return new(token.WhitespaceToken)(null, (x || " "));
+            return new(token.WhitespaceToken)(null, x);
         }),
+        newLine = lineTerminator("\n"),
+        space = whitespace(" "),
         seq = (function() {
             var args = arguments;
-            if ((args.length === 0)) return stream.end;
+            if ((args.length === 0)) return NIL;
             var first = args[0],
                 rest = seq.apply(undefined, slice.call(args, 1));
             if (((first === undefined) || stream.isEmpty(first))) return rest;
@@ -35,7 +42,7 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
         }),
         statement = (function() {
             var args = arguments;
-            return seq(seq.apply(undefined, args), lineTerminator());
+            return seq(seq.apply(undefined, args), newLine);
         }),
         expression = (function() {
             var args = arguments;
@@ -47,7 +54,7 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
         }),
         clause = (function() {
             var args = arguments;
-            return seq(seq.apply(undefined, args), lineTerminator());
+            return seq(seq.apply(undefined, args), newLine);
         }),
         value = (function() {
             var args = arguments;
@@ -75,24 +82,23 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
             return seq.apply(undefined, body);
         }),
         variableDeclaration = (function(declarations) {
-            return statement(keyword("var"), whitespace(), join(declarations, punctuator(",")), punctuator(
-                ";"));
+            return statement(keyword("var"), space, join(declarations, punctuator(",")), punctuator(";"));
         }),
         variableDeclarator = (function(id, init) {
-            return declaration(id, (init ? seq(whitespace(), punctuator("="), whitespace(), init) : stream.end));
+            return declaration(id, (init ? seq(space, punctuator("="), space, init) : NIL));
         }),
         functionExpression = (function(id, params, body) {
-            return expression(punctuator("("), keyword("function"), (id ? seq(whitespace(), id) : stream.end),
-                punctuator("("), joins(params, seq(punctuator(","), whitespace())), punctuator(")"),
-                whitespace(), body, punctuator(")"));
+            return expression(punctuator("("), keyword("function"), (id ? seq(space, id) : NIL), punctuator(
+                    "("), joins(params, seq(punctuator(","), space)), punctuator(")"), space, body,
+                punctuator(")"));
         }),
         functionDeclaration = (function(id, params, body) {
-            return declaration(keyword("function"), whitespace(), punctuator("("), joins(params, seq(
-                punctuator(","), whitespace())), punctuator(")"), whitespace(), body);
+            return declaration(keyword("function"), space, punctuator("("), joins(params, seq(punctuator(
+                ","), space)), punctuator(")"), space, body);
         }),
         switchCase = (function(test, consequent) {
-            return seq((test ? seq(keyword("case"), whitespace(), test) : keyword("default")), punctuator(
-                ":"), lineTerminator(), seq.apply(undefined, consequent));
+            return seq((test ? seq(keyword("case"), space, test) : keyword("default")), punctuator(":"),
+                newLine, seq.apply(undefined, consequent));
         }),
         catchClause = (function(param, body) {
             return seq(keyword("catch"), punctuator("("), param, punctuator(")"), body);
@@ -104,23 +110,23 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
             return statement(keyword("debugger"), punctuator(";"));
         }),
         blockStatement = (function(body) {
-            return statement(punctuator("{"), lineTerminator(), seq.apply(undefined, body), punctuator("}"));
+            return statement(punctuator("{"), newLine, seq.apply(undefined, body), punctuator("}"));
         }),
         expressionStatement = (function(expression) {
             return statement(expression, punctuator(";"));
         }),
         ifStatement = (function(test, consequent, alternate) {
-            return statement(keyword("if"), whitespace(), punctuator("("), test, punctuator(")"),
-                consequent, (!alternate ? stream.end : seq(keyword("else"), whitespace(), alternate)));
+            return statement(keyword("if"), space, punctuator("("), test, punctuator(")"), consequent, ((!
+                alternate) ? NIL : seq(keyword("else"), space, alternate)));
         }),
         labeledStatement = (function(label, body) {
             return statement(identifier(label), punctuator(":"), body);
         }),
         breakStatement = (function(label) {
-            return statement(keyword("break"), whitespace(), label, punctuator(";"));
+            return statement(keyword("break"), space, label, punctuator(";"));
         }),
         continueStatement = (function(label) {
-            return statement(keyword("continue"), whitespace(), label, punctuator(";"));
+            return statement(keyword("continue"), space, label, punctuator(";"));
         }),
         withStatement = (function(obj, body) {
             return statement(keyword("with"), punctuator("("), obj, punctuator(")"), punctuator("{"), body,
@@ -128,17 +134,17 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
         }),
         switchStatement = (function(discriminant, cases) {
             return statement(keyword("switch"), punctuator("("), discriminant, punctuator(")"), punctuator(
-                "{"), lineTerminator(), seq.apply(undefined, cases), punctuator("}"));
+                "{"), newLine, seq.apply(undefined, cases), punctuator("}"));
         }),
         returnStatement = (function(argument) {
-            return statement(keyword("return"), whitespace(), argument, punctuator(";"));
+            return statement(keyword("return"), space, argument, punctuator(";"));
         }),
         throwStatement = (function(argument) {
-            return statement(keyword("throw"), whitespace(), argument, punctuator(";"));
+            return statement(keyword("throw"), space, argument, punctuator(";"));
         }),
         tryStatement = (function(block, handler, finalizer) {
-            return statement(keyword("try"), block, (handler ? handler : stream.end), (finalizer ? seq(
-                keyword("finally"), finalizer) : stream.end));
+            return statement(keyword("try"), block, (handler ? handler : NIL), (finalizer ? seq(keyword(
+                "finally"), finalizer) : NIL));
         }),
         whileStatement = (function(test, body) {
             return statement(keyword("while"), punctuator("("), test, punctuator(")"), body);
@@ -148,8 +154,8 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
                 punctuator(";"));
         }),
         forDeclarationStatement = (function(init, test, update, body) {
-            return statement(keyword("for"), punctuator("("), init, whitespace(), test, punctuator(";"),
-                update, punctuator(")"), body);
+            return statement(keyword("for"), punctuator("("), init, space, test, punctuator(";"), update,
+                punctuator(")"), body);
         }),
         forStatement = (function(init, test, update, body) {
             return statement(keyword("for"), punctuator("("), init, punctuator(";"), test, punctuator(";"),
@@ -163,56 +169,53 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
             return expression(keyword("this"));
         }),
         sequenceExpression = (function(expressions) {
-            return expression(join(expressions, punctuator(",")));
+            return expression(punctuator("("), join(expressions, punctuator(",")), punctuator(")"));
         }),
         unaryExpression = (function(op, arg) {
-            return expression(punctuator("("), op, whitespace(), arg, punctuator(")"));
+            return expression(punctuator("("), op, space, arg, punctuator(")"));
         }),
         binaryExpression = (function(op, left, right) {
-            return expression(punctuator("("), left, whitespace(), op, whitespace(), right, punctuator(")"));
+            return expression(punctuator("("), left, space, op, space, right, punctuator(")"));
         }),
         updateExpression = (function(op, arg, prefix) {
             return (prefix ? expression(op, arg) : expression(arg, op));
         }),
         conditionalExpression = (function(test, consequent, alternate) {
-            return expression(punctuator("("), test, whitespace(), punctuator("?"), whitespace(),
-                consequent, whitespace(), punctuator(":"), whitespace(), alternate, punctuator(")"));
+            return expression(punctuator("("), test, space, punctuator("?"), space, consequent, space,
+                punctuator(":"), space, alternate, punctuator(")"));
         }),
         newExpression = (function(callee, args) {
-            return expression(keyword("new"), whitespace(), punctuator("("), callee, punctuator(")"), (args ?
-                seq(punctuator("("), joins(args, seq(punctuator(","), whitespace())), punctuator(")")) :
-                stream.end));
+            return expression(keyword("new"), space, punctuator("("), callee, punctuator(")"), (args ? seq(
+                punctuator("("), joins(args, seq(punctuator(","), space)), punctuator(")")) : NIL));
         }),
         callExpression = (function(callee, args) {
-            return expression(callee, punctuator("("), joins(args, seq(punctuator(","), whitespace())),
-                punctuator(")"));
+            return expression(callee, punctuator("("), joins(args, seq(punctuator(","), space)), punctuator(
+                ")"));
         }),
         memberExpression = (function(obj, property, computed) {
             return (computed ? expression(obj, punctuator("["), property, punctuator("]")) : expression(obj,
                 punctuator("."), property));
         }),
         arrayExpression = (function(elements) {
-            return expression(punctuator("["), joins(elements, seq(punctuator(","), whitespace())),
-                punctuator("]"));
+            return expression(punctuator("["), joins(elements, seq(punctuator(","), space)), punctuator("]"));
         }),
         objectExpression = (function(props) {
-            return expression(punctuator("("), punctuator("{"), ((props && props.length) ? seq(
-                lineTerminator(), joins(props, seq(punctuator(","), lineTerminator())),
-                lineTerminator()) : stream.end), punctuator("}"), punctuator(")"));
+            return expression(punctuator("("), punctuator("{"), ((props && props.length) ? seq(newLine,
+                    joins(props, seq(punctuator(","), newLine)), newLine) : NIL), punctuator("}"),
+                punctuator(")"));
         }),
         objectGetExpression = (function(key, body) {
-            return seq(identifier("get"), whitespace(), key, punctuator("("), punctuator(")"), whitespace(),
-                body);
+            return seq(identifier("get"), space, key, punctuator("("), punctuator(")"), space, body);
         }),
         objectSetExpression = (function(key, params, body) {
-            return seq(identifier("set"), whitespace(), key, punctuator("("), seq.apply(undefined, params),
-                punctuator(")"), whitespace(), body);
+            return seq(identifier("set"), space, key, punctuator("("), seq.apply(undefined, params),
+                punctuator(")"), space, body);
         }),
         objectValueExpression = (function(key, value) {
-            return seq(key, punctuator(":"), whitespace(), value);
+            return seq(key, punctuator(":"), space, value);
         }),
         _unparse = (function(node) {
-            if (!node) return stream.end;
+            if ((!node)) return NIL;
             switch (node.type) {
                 case "SwitchCase":
                     return switchCase((node.test ? _unparse(node.test) : null), node.consequent.map(
@@ -319,10 +322,10 @@ define(["require", "exports", "nu-stream/stream", "nu-stream/gen", "ecma-ast/tok
                         case "regexp":
                             return regexp(node.value);
                         default:
-                            return stream.end;
+                            return NIL;
                     }
                 default:
-                    return stream.end;
+                    return NIL;
             }
         });
     (unparse = _unparse);
