@@ -4,8 +4,7 @@
 package (
     unparse)
 with
-    import 'nu-stream::stream' stream,
-    import 'nu-stream::gen' gen,
+    import 'nu-stream::stream' stream#{NIL},
     
     import 'ecma-ast::token' token,
     import 'ecma-ast::node' node
@@ -20,7 +19,7 @@ var slice = Array.prototype.slice;
  */
 var join = \arr, joiner -> {
     if (arr.length === 0)
-        return stream.end;
+        return NIL;
     else if (arr.length === 1) 
         return arr.(0);
     else 
@@ -32,7 +31,7 @@ var join = \arr, joiner -> {
  */
 var joins = \arr, joiner -> {
     if (arr.length === 0) 
-        return stream.end;
+        return NIL;
     else if (arr.length === 1)
         return arr.(0);
     else
@@ -45,19 +44,23 @@ var keyword = \x ->
     new token.KeywordToken(null, x);
 
 var lineTerminator = \x ->
-    new token.LineTerminatorToken(null, x || '\n');
+    new token.LineTerminatorToken(null, x);
 
 var punctuator = \x ->
     new token.PunctuatorToken(null, x);
 
 var whitespace = \x ->
-    new token.WhitespaceToken(null, x || ' ');
+    new token.WhitespaceToken(null, x);
 
+var newLine = lineTerminator '\n';
+    
+var space = whitespace ' ';
+    
 /* 
  ******************************************************************************/
 var seq = \args(...) -> {
     if (args.length === 0)
-        return stream.end;
+        return NIL;
     
     var first = args.(0),
         rest = seq.apply(undefined, slice.call(args, 1));
@@ -75,7 +78,7 @@ var seq = \args(...) -> {
 var statement = \args(...) ->
     seq(
         seq.apply(undefined, args),
-        lineTerminator());
+        newLine);
 
 var expression = \args(...) ->
     seq.apply(undefined, args);
@@ -87,7 +90,7 @@ var declaration = \args(...) ->
 var clause = \args(...) ->
     seq(
         seq.apply(undefined, args),
-        lineTerminator());
+        newLine);
 
 
 var value = \args(...) ->
@@ -120,229 +123,229 @@ var program = \body ->
 
 var variableDeclaration = \declarations ->
     statement(
-        keyword('var'),
-        whitespace(),
-        join(declarations, punctuator(',')),
-        punctuator(';'));
+        keyword 'var',
+        space,
+        join(declarations, punctuator ','),
+        punctuator ';');
 
 var variableDeclarator = \id, init ->
     declaration(
         id,
         ?init
             :seq(
-                whitespace(),
-                punctuator('='),
-                whitespace(),
+                space,
+                punctuator '=',
+                space,
                 init)
-            :stream.end);
+            :NIL);
 
 var functionExpression = \id, params, body ->
     expression(
-        punctuator('('),
-        keyword('function'),
+        punctuator '(',
+        keyword 'function',
         ?id
             :seq(
-                whitespace(),
+                space,
                 id)
-            :stream.end,
-        punctuator('('),
+            :NIL,
+        punctuator '(',
         joins(params, seq(
-            punctuator(','),
-            whitespace())),
-        punctuator(')'),
-        whitespace(),
+            punctuator ',',
+            space)),
+        punctuator ')',
+        space,
         body,
-        punctuator(')'));
+        punctuator ')');
 
 
 var functionDeclaration = \id, params, body ->
     declaration(
-        keyword('function'),
-        whitespace(),
-        punctuator('('),
+        keyword 'function',
+        space,
+        punctuator '(',
         joins(params, seq(
-            punctuator(','),
-            whitespace())),
-        punctuator(')'),
-        whitespace(),
+            punctuator ',',
+            space)),
+        punctuator ')',
+        space,
         body);
     
 var switchCase = \test, consequent ->
     seq(
         ?test
             :seq(
-                keyword('case'),
-                whitespace(),
+                keyword 'case',
+                space,
                 test)
-            :keyword('default'),
-        punctuator(':'),
-            lineTerminator(),
+            :keyword 'default',
+        punctuator ':',
+            newLine,
             seq.apply(undefined, consequent));
 
 var catchClause = \param, body -> 
     seq(
-        keyword('catch'),
-        punctuator('('),
+        keyword 'catch',
+        punctuator '(',
         param,
-        punctuator(')'),
+        punctuator ')',
         body);
 
 /* Statement Unparsing
  ******************************************************************************/
 var emptyStatement = \() ->
     statement(
-        punctuator(';'));
+        punctuator ';');
 
 var debuggerStatement = \() ->
     statement(
-        keyword('debugger'),
-        punctuator(';'));
+        keyword 'debugger',
+        punctuator ';');
 
 var blockStatement = \body ->
     statement(
-        punctuator('{'),
-        lineTerminator(),
+        punctuator '{',
+        newLine,
         seq.apply(undefined, body),
-        punctuator('}'));
+        punctuator '}');
 
 var expressionStatement = \expression -> 
     statement(
         expression,
-        punctuator(';'));
+        punctuator ';');
 
 var ifStatement = \test, consequent, alternate ->
     statement(
-        keyword('if'),
-        whitespace(),
-        punctuator('('),
+        keyword 'if',
+        space,
+        punctuator '(',
         test,
-        punctuator(')'),
+        punctuator ')',
         consequent,
         ?!alternate
-            :stream.end
+            :NIL
             :seq(
-                keyword('else'),
-                whitespace(),
+                keyword 'else',
+                space,
                 alternate));
 
 var labeledStatement = \label, body ->
     statement(
-        identifier(label),
-        punctuator(':'),
+        identifier label,
+        punctuator ':',
         body);
 
 var breakStatement = \label ->
     statement(
-        keyword('break'),
-        whitespace(),
+        keyword 'break',
+        space,
         label,
-        punctuator(';'));
+        punctuator ';');
 
 var continueStatement = \label ->
     statement(
-        keyword('continue'),
-        whitespace(),
+        keyword 'continue',
+        space,
         label,
-        punctuator(';'));
+        punctuator ';');
 
 var withStatement = \obj, body ->
     statement(
-        keyword('with'),
-        punctuator('('),
+        keyword 'with',
+        punctuator '(',
         obj,
-        punctuator(')'),
-        punctuator('{'),
+        punctuator ')',
+        punctuator '{',
         body,
-        punctuator('}'));
+        punctuator '}');
 
 var switchStatement = \discriminant, cases ->
     statement(
-        keyword('switch'),
-        punctuator('('),
+        keyword 'switch',
+        punctuator '(',
         discriminant,
-        punctuator(')'),
-        punctuator('{'),
-        lineTerminator(),
+        punctuator ')',
+        punctuator '{',
+        newLine,
         seq.apply(undefined, cases),
-        punctuator('}'));
+        punctuator '}');
 
 var returnStatement = \argument ->
     statement(
-        keyword('return'),
-        whitespace(),
+        keyword 'return',
+        space,
         argument,
-        punctuator(';'));
+        punctuator ';');
 
 var throwStatement = \argument ->
     statement(
-        keyword('throw'),
-        whitespace(),
+        keyword 'throw',
+        space,
         argument,
-        punctuator(';'));
+        punctuator ';');
 
 var tryStatement = \block, handler, finalizer ->
     statement(
-        keyword('try'),
+        keyword 'try',
         block,
         ?handler
             :handler
-            :stream.end,
+            :NIL,
         ?finalizer
             :seq(
-                keyword('finally'),
+                keyword 'finally',
                 finalizer)
-            :stream.end);
+            :NIL);
 
 var whileStatement = \test, body -> 
     statement(
-        keyword('while'),
-        punctuator('('),
+        keyword 'while',
+        punctuator '(',
         test,
-        punctuator(')'),
+        punctuator ')',
         body);
 
 var doWhileStatement = \body, test ->
     statement(
-        keyword('do'),
+        keyword 'do',
         body,
-        keyword('while'),
-        punctuator('('),
+        keyword 'while',
+        punctuator '(',
         test,
-        punctuator(')'),
-        punctuator(';'));
+        punctuator ')',
+        punctuator ';');
 
 var forDeclarationStatement = \init, test, update, body ->
     statement(
-        keyword('for'),
-        punctuator('('),
+        keyword 'for',
+        punctuator '(',
         init,
-        whitespace(),
+        space,
         test,
-        punctuator(';'),
+        punctuator ';',
         update,
-        punctuator(')'),
+        punctuator ')',
         body);
 
 var forStatement = \init, test, update, body ->
     statement(
-        keyword('for'),
-        punctuator('('),
+        keyword 'for',
+        punctuator '(',
         init,
-        punctuator(';'),
+        punctuator ';',
         test,
-        punctuator(';'),
+        punctuator ';',
         update,
-        punctuator(')'),
+        punctuator ')',
         body);
 
 var forInStatement = \left, right ->
     statement(
-        keyword('for'),
-        punctuator('('),
+        keyword 'for',
+        punctuator '(',
         node.left,
-        punctuator('in'),
+        punctuator 'in',
         node.right,
-        punctuator(')'),
+        punctuator ')',
         node.body);
 
 
@@ -350,30 +353,31 @@ var forInStatement = \left, right ->
  ******************************************************************************/
 var thisExpression = \() ->
     expression(
-        keyword('this'));
-
+        keyword 'this');
 
 var sequenceExpression = \expressions -> 
     expression(
-        join(expressions, punctuator(',')));
+        punctuator '(',
+        join(expressions, punctuator ','),
+        punctuator ')');
 
 var unaryExpression = \op, arg ->
     expression(
-        punctuator('('),
+        punctuator '(',
         op,
-        whitespace(),
+        space,
         arg,
-        punctuator(')'));
+        punctuator ')');
 
 var binaryExpression = \op, left, right ->
     expression(
-        punctuator('('),
+        punctuator '(',
         left,
-        whitespace(),
+        space,
         op,
-        whitespace(),
+        space,
         right,
-        punctuator(')'));
+        punctuator ')');
     
 var updateExpression = \op, arg, prefix ->
     ?prefix
@@ -382,104 +386,104 @@ var updateExpression = \op, arg, prefix ->
 
 var conditionalExpression = \test, consequent, alternate ->
     expression(
-        punctuator('('),
+        punctuator '(',
         test,
-        whitespace(),
-        punctuator('?'),
-        whitespace(),
+        space,
+        punctuator '?',
+        space,
         consequent,
-        whitespace(),
-        punctuator(':'),
-        whitespace(),
+        space,
+        punctuator ':',
+        space,
         alternate,
-        punctuator(')'));
+        punctuator ')');
 
 var newExpression = \callee, args ->
     expression(
-        keyword('new'),
-        whitespace(),
-        punctuator('('),
+        keyword 'new',
+        space,
+        punctuator '(',
         callee,
-        punctuator(')'),
+        punctuator ')',
         ?args
             :seq(
-                punctuator('('),
+                punctuator '(',
                 joins(args, seq(
-                    punctuator(','),
-                    whitespace())),
-                punctuator(')'))
-            :stream.end);
+                    punctuator ',',
+                    space)),
+                punctuator ')')
+            :NIL);
 
 var callExpression = \callee, args ->
     expression(
         callee,
-        punctuator('('),
+        punctuator '(',
         joins(args, seq(
-            punctuator(','),
-            whitespace())),
-        punctuator(')'));
+            punctuator ',',
+            space)),
+        punctuator ')');
 
 var memberExpression = \obj, property, computed ->
     ?computed
         :expression(
             obj,
-            punctuator('['),
+            punctuator '[',
             property,
-            punctuator(']'))
+            punctuator ']')
         :expression(
             obj,
-            punctuator('.'),
-                property);
+            punctuator '.',
+            property);
  
 var arrayExpression = \elements ->
     expression(
-        punctuator('['),
+        punctuator '[',
         joins(elements, seq(
-            punctuator(','),
-            whitespace())),
-        punctuator(']'));
+            punctuator ',',
+            space)),
+        punctuator ']');
 
 var objectExpression = \props ->
      expression(
-        punctuator('('),
-        punctuator('{'),
+        punctuator '(',
+        punctuator '{',
         ?props && props.length
             :seq(
-                lineTerminator(),
+                newLine,
                 joins(props, seq(
-                    punctuator(','),
-                    lineTerminator())),
-                lineTerminator())
-            :stream.end,
-        punctuator('}'),
-        punctuator(')'));
+                    punctuator ',',
+                    newLine)),
+                newLine)
+            :NIL,
+        punctuator '}',
+        punctuator ')');
 
 var objectGetExpression = \key, body ->
     seq(
-        identifier('get'),
-        whitespace(),
+        identifier 'get',
+        space,
         key,
-        punctuator('('),
-        punctuator(')'),
-        whitespace(),
+        punctuator '(',
+        punctuator ')',
+        space,
         body);
 
 var objectSetExpression = \key, params, body ->
     seq(
-        identifier('set'),
-        whitespace(),
+        identifier 'set',
+        space,
         key,
-        punctuator('('),
+        punctuator '(',
         seq.apply(undefined, params),
-        punctuator(')'),
-        whitespace(),
+        punctuator ')',
+        space,
         body);
 
 var objectValueExpression = \key, value ->
     seq(
         key,
-        punctuator(':'),
-        whitespace(),
+        punctuator ':',
+        space,
         value);
 
 
@@ -491,7 +495,7 @@ var objectValueExpression = \key, value ->
  */
 var _unparse = \node -> {
     if (!node)
-        return stream.end;
+        return NIL;
         
     switch (node.type) {
 // clauses
@@ -605,20 +609,20 @@ var _unparse = \node -> {
     
     case 'UnaryExpression':
         return unaryExpression(
-            punctuator(node.operator),
+            punctuator node.operator,
             _unparse(node.argument));
         
     case 'BinaryExpression':
     case 'LogicalExpression':
     case 'AssignmentExpression':
         return binaryExpression(
-            punctuator(node.operator),
+            punctuator node.operator,
             _unparse(node.left),
             _unparse(node.right));
 
     case 'UpdateExpression':
         return updateExpression(
-            punctuator(node.operator),
+            punctuator node.operator,
             _unparse(node.argument),
             node.prefix);
         
@@ -693,7 +697,7 @@ var _unparse = \node -> {
 
 // Value
     case 'Identifier':
-        return identifier(node.name);
+        return identifier node.name;
     
     case 'Literal':
         switch (node.kind) {
@@ -708,11 +712,11 @@ var _unparse = \node -> {
         case 'regexp':
             return regexp(node.value);
         default:
-            return stream.end;
+            return NIL;
         }
         
     default:
-        return stream.end;
+        return NIL;
     }
 };
 

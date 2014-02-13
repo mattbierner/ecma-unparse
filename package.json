@@ -1,6 +1,6 @@
 {
     "name": "ecma-unparse",
-    "version": "3.2.4",
+    "version": "3.2.5",
     "description": "Simple ECMAscript AST to text transform",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -17,7 +17,6 @@
         "lib": "lib/"
     },
     "files": [
-        "dependencies/",
         "lib/",
         "dist_node/",
         "index.js",

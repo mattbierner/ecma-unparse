@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 3.2.5 - Feb 13, 2014
+* Fixed sequence expression potential precedence issue.
+
 ## 3.2.4 - January 27, 2014
 * Fixed unary expressions potentially generating incorrectly.
 

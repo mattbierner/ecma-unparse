@@ -55,52 +55,58 @@
     
     <script type="application/javascript">
         requirejs.config({
+            map: {
+            '*': {
+                    'ecma_ast': 'ecma-ast'
+                }
+            },
             paths: {
                 'ecma-unparse': 'dist',
             
                 'nu-stream': 'dependencies/nu/dist',
                 
                 'ecma-ast': 'dependencies/ecma-ast/dist',
-                'ecma_ast': 'dependencies/ecma-ast/dist',
+                
+                'ecma': 'resources/parse-ecma/lib',
                 
                 'bennu': 'resources/bennu/dist',
-                'seshet': 'resources/seshet/dist/seshet',
-                
-                'ecma': 'resources/parse-ecma/lib'
+                'seshet': 'resources/seshet/dist/seshet'
             }
         });
-            require([
-                'nu-stream/stream',
-                'ecma/lex/lexer', 'ecma/parse/parser',
-                'ecma-unparse/unparse', 'ecma-unparse/print'],
-            function(
-                stream,
-                lexer,
-                parser,
-                ecma_unparse, print, serialization)
-            {
-                $(function () {
-                    var lexOut = $('.LexOut');
-                    $('button').click(function () {
-                        var input = $('textarea').val();
-                        var ast;
-                      //  try {
-                            ast = parser.parse(input);
-                            
-                            var raw = ecma_unparse.unparse(ast);
-                            var nodes = print.print(raw);
-                            
-                            $('.ParseError').text('');
-                            $('#text_out').text(nodes);
-                      //  } catch (e) {
-                          //  $('.ParseError').text(e);
-                          //  $('#parse_out').text('');
-                      //  }
+        require([
+            'nu-stream/stream',
+            'ecma/lex/lexer',
+            'ecma/parse/parser',
+            'ecma-unparse/unparse',
+            'ecma-unparse/print'],
+        function(
+            stream,
+            lexer,
+            parser,
+            ecma_unparse,
+            print)
+        {
+            $(function () {
+                var lexOut = $('.LexOut');
+                $('button').click(function () {
+                    var input = $('textarea').val();
+                    var ast;
+                  //  try {
+                        ast = parser.parse(input);
                         
-                    });
+                        var raw = ecma_unparse.unparse(ast);
+                        var nodes = print.print(raw);
+                        
+                        $('.ParseError').text('');
+                        $('#text_out').text(nodes);
+                  //  } catch (e) {
+                      //  $('.ParseError').text(e);
+                      //  $('#parse_out').text('');
+                  //  }
+                    
                 });
             });
-
+        });
     </script>
 
 </body>
