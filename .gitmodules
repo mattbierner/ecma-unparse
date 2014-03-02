@@ -16,3 +16,9 @@
 [submodule "resources/seshet"]
 	path = resources/seshet
 	url = https://github.com/mattbierner/seshet.git
+[submodule "dependencies/neith"]
+	path = dependencies/neith
+	url = https://github.com/mattbierner/neith.git
+[submodule "dependencies/ecma-ast-zipper"]
+	path = dependencies/ecma-ast-zipper
+	url = https://github.com/mattbierner/ecma-ast-zipper.git

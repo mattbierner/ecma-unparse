@@ -67,6 +67,10 @@
                 
                 'ecma-ast': 'dependencies/ecma-ast/dist',
                 
+                'ecma-ast-zipper': 'dependencies/ecma-ast-zipper/dist/ecma_zipper',
+                'neith': 'dependencies/neith/dist',
+                
+                
                 'ecma': 'resources/parse-ecma/lib',
                 
                 'bennu': 'resources/bennu/dist',
@@ -93,10 +97,13 @@
                     var ast;
                   //  try {
                         ast = parser.parse(input);
+                        var start = new Date().getTime();
                         
                         var raw = ecma_unparse.unparse(ast);
                         var nodes = print.print(raw);
                         
+                        var end = new Date().getTime();
+                        console.log(end - start);
                         $('.ParseError').text('');
                         $('#text_out').text(nodes);
                   //  } catch (e) {

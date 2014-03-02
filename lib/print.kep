@@ -33,8 +33,6 @@ var options = {
 
 var beautify = (js_beautify.js_beautify || js_beautify);
 
-
-
 /**
  * Transforms a stream of tokens to a string.
  */

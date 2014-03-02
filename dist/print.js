@@ -1,3 +1,7 @@
+/*
+ * THIS FILE IS AUTO GENERATED from 'lib/print.kep'
+ * DO NOT EDIT
+*/
 define(["require", "exports", "nu-stream/stream", "./beautify"], (function(require, exports, __o, js_beautify) {
     "use strict";
     var foldl = __o["foldl"],
@@ -6,7 +10,7 @@ define(["require", "exports", "nu-stream/stream", "./beautify"], (function(requi
             return (x + y);
         }), ""),
         mapTokens = map.bind(null, (function(x) {
-            if (!x) return "";
+            if ((!x)) return "";
             switch (x.type) {
                 case "Null":
                     return "null";

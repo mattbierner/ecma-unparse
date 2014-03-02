@@ -4,7 +4,7 @@
 package (
     unparse)
 with
-    import 'nu-stream::stream' stream#{NIL},
+    import 'nu-stream::stream' stream#{NIL cons},
     
     import 'ecma-ast::token' token,
     import 'ecma-ast::node' node
@@ -12,31 +12,29 @@ in {
 
 var slice = Array.prototype.slice;
 
+/* State
+ ******************************************************************************/
+
+
 /* Stream Utilities
  ******************************************************************************/
 /**
- * Joins an array of objects into a stream with a given joiner object.
- */
-var join = \arr, joiner -> {
-    if (arr.length === 0)
-        return NIL;
-    else if (arr.length === 1) 
-        return arr.(0);
-    else 
-        return stream.append(arr.(0), stream.cons(joiner, join(arr.slice(1), joiner)));
-};
-
-/**
  * Joins an array of objects into a stream with a stream joiner object.
  */
-var joins = \arr, joiner -> {
-    if (arr.length === 0) 
-        return NIL;
-    else if (arr.length === 1)
-        return arr.(0);
-    else
-        return stream.append(arr.(0), stream.append(joiner, joins(arr.slice(1), joiner)));
-};
+var joins = \arr, joiner -> 
+    ?!arr.length
+        :NIL
+    :?arr.length === 1
+        :arr.(0)
+        :stream.append(
+            arr.(0),
+            stream.append(joiner, joins(arr.slice(1), joiner)));
+
+/**
+ * Joins an array of objects into a stream with a given joiner object.
+ */
+var join = \arr, joiner ->
+    joins(arr, cons(joiner, NIL));
 
 /* Token
  ******************************************************************************/
@@ -53,9 +51,9 @@ var whitespace = \x ->
     new token.WhitespaceToken(null, x);
 
 var newLine = lineTerminator '\n';
-    
+
 var space = whitespace ' ';
-    
+
 /* 
  ******************************************************************************/
 var seq = \args(...) -> {
@@ -490,83 +488,101 @@ var objectValueExpression = \key, value ->
 
 /* Unparsing
  ******************************************************************************/
-/**
- * Transforms a AST node to a stream of tokens.
- */
-var _unparse = \node -> {
-    if (!node)
-        return NIL;
-        
-    switch (node.type) {
-// clauses
-    case 'SwitchCase':
-        return switchCase(
+var rewrites = {};
+
+var addRewrite = \type, check -> {
+    if (Array.isArray(type))
+        type.forEach <|\x -> addRewrite(x, check);
+    else
+        rewrites.(type) = check;
+};
+
+var _unparse;
+
+// Clauses
+addRewrite@'SwitchCase' <|
+    \node ->
+        switchCase(
             ?node.test
                 :_unparse(node.test)
                 :null,
-            node.consequent.map(_unparse));
+            _unparse(node.consequent));
    
-    case 'CatchClause':
-        return catchClause(
+addRewrite@'CatchClause' <|
+    \node ->
+        catchClause(
             _unparse(node.param),
             _unparse(node.body));
-    
+
 // Statement
-    case 'EmptyStatement':
-        return emptyStatement();
-        
-    case 'DebuggerStatement':
-        return debuggerStatement();
+addRewrite@'EmptyStatement' <|
+    \node -> 
+        emptyStatement();
     
-    case 'BlockStatement':
-        return blockStatement(
-            node.body.map(_unparse));
-        
-    case 'ExpressionStatement':
-        return expressionStatement(
+addRewrite@'DebuggerStatement' <|
+    \node ->
+        debuggerStatement();
+
+addRewrite@'BlockStatement' <|
+    \node ->
+        blockStatement(
+            _unparse(node.body));
+    
+addRewrite@'ExpressionStatement' <|
+    \node ->
+        expressionStatement(
             _unparse(node.expression));
-    
-    case 'IfStatement':
-        return ifStatement(
+
+addRewrite@'IfStatement' <|
+    \node ->
+        ifStatement(
             _unparse(node.test),
             _unparse(node.consequent),
             ?node.alternate
                 :_unparse(node.alternate)
                 :null);
-        
-    case 'LabeledStatement':
-        return labeledStatement(
+    
+addRewrite@'LabeledStatement' <|
+    \node ->
+        labeledStatement(
             _unparse(node.label),
             _unparse(node.body));
-        
-    case 'BreakStatement':
-        return breakStatement(
-           _unparse(node.label));
-        
-    case 'ContinueStatement':
-        return continueStatement(
+    
+addRewrite@'BreakStatement' <|
+    \node ->
+        breakStatement(
             _unparse(node.label));
-        
-    case 'WithStatement':
-        return withStatement(
+    
+addRewrite@'ContinueStatement' <|
+    \node -> 
+        continueStatement(
+            _unparse(node.label));
+    
+addRewrite@'WithStatement' <|
+    \node ->
+        withStatement(
             _unparse(node.object),
             _unparse(node.body));
-    
-    case 'SwitchStatement':
-        return switchStatement(
+
+addRewrite@'SwitchStatement' <|
+    \node ->
+        switchStatement(
             _unparse(node.discriminant),
             node.cases.map(_unparse));
-    
-    case'ReturnStatement':
-        return returnStatement(
+
+addRewrite@'ReturnStatement' <|
+    \node ->
+        returnStatement(
             _unparse(node.argument));
-    
-    case 'ThrowStatement':
-        return throwStatement(
+
+addRewrite@'ThrowStatement' <|
+    \node ->
+        throwStatement(
             _unparse(node.argument));
-    
-    case 'TryStatement':
-        return tryStatement(
+
+addRewrite@'TryStatement' <|
+    \node ->
+        tryStatement(
             _unparse(node.block),
             ?node.handler
                 :_unparse(node.handler)
@@ -574,132 +590,162 @@ var _unparse = \node -> {
             ?node.finalizer
                 :_unparse(node.finalizer)
                 :null);
-    
-    case 'WhileStatement':
-        return whileStatement(
+
+addRewrite@'WhileStatement' <|
+    \node ->
+        whileStatement(
             _unparse(node.test),
             _unparse(node.body));
-    
-    case 'DoWhileStatement':
-        return doWhileStatement(
+
+addRewrite@'DoWhileStatement' <|
+    \node ->
+        doWhileStatement(
             _unparse(node.body),
             _unparse(node.test));
-    
-    case 'ForStatement':
-        var init = ?node.init :_unparse(node.init) :null;
-        var test = ?node.test :_unparse(node.test) :null;
-        var update = ?node.update :_unparse(node.update) :null;
-        var body = _unparse(node.body);
-        return ?node.init && node.init.type ===  "VariableDeclaration"
+
+addRewrite@'ForStatement' <|
+    \node -> let
+        init = ?node.init :_unparse(node.init) :null,
+        test = ?node.test :_unparse(node.test) :null,
+        update = ?node.update :_unparse(node.update) :null,
+        body = _unparse(node.body)
+    in
+        ?node.init && node.init.type ===  "VariableDeclaration"
             :forDeclarationStatement(init, test, update, body)
             :forStatement(init, test, update, body);
-        
-    case 'ForInStatement':
-        return forInStatement(
+    
+addRewrite@'ForInStatement' <|
+    \node ->
+        forInStatement(
             _unparse(node.left),
             _unparse(node.right),
             _unparse(node.body));
-        
-// Expression
-    case 'ThisExpression':
-        return thisExpression();
 
-    case 'SequenceExpression':
-        return sequenceExpression(node.expressions.map(_unparse));
-    
-    case 'UnaryExpression':
-        return unaryExpression(
+// Expression
+addRewrite@'ThisExpression' <|
+    \node ->
+        thisExpression();
+
+addRewrite@'SequenceExpression' <|
+    \node ->
+        sequenceExpression(
+            _unparse(node.expressions));
+
+addRewrite@'UnaryExpression' <|
+    \node ->
+        unaryExpression(
             punctuator node.operator,
             _unparse(node.argument));
-        
-    case 'BinaryExpression':
-    case 'LogicalExpression':
-    case 'AssignmentExpression':
-        return binaryExpression(
+    
+addRewrite@['BinaryExpression', 'LogicalExpression', 'AssignmentExpression'] <|
+    \node ->
+        binaryExpression(
             punctuator node.operator,
             _unparse(node.left),
             _unparse(node.right));
 
-    case 'UpdateExpression':
-        return updateExpression(
+addRewrite@'UpdateExpression' <|
+    \node ->
+        updateExpression(
             punctuator node.operator,
             _unparse(node.argument),
             node.prefix);
-        
-    case 'ConditionalExpression':
-        return conditionalExpression(
+    
+addRewrite@'ConditionalExpression' <|
+    \node ->
+        conditionalExpression(
             _unparse(node.test),
             _unparse(node.consequent),
             _unparse(node.alternate));
-    
-    case 'NewExpression':
-        return newExpression(
+
+addRewrite@'NewExpression' <|
+    \node ->
+        newExpression(
             _unparse(node.callee),
-            ?node.args
-                :node.args.map(_unparse)
-                :null);
-    
-    case 'CallExpression':
-        return callExpression(
+            _unparse(node.args));
+
+addRewrite@'CallExpression' <|
+    \node ->
+        callExpression(
             _unparse(node.callee),
             node.args.map(_unparse));
-        
-    case 'MemberExpression':
-        return memberExpression(
+    
+addRewrite@'MemberExpression' <|
+    \node ->
+        memberExpression(
             _unparse(node.object),
             _unparse(node.property),
             node.computed);
-        
-    case 'ArrayExpression':
-        return arrayExpression(node.elements.map(_unparse));
     
-    case 'ObjectExpression':
-        return objectExpression(node.properties.map(_unparse));
+addRewrite@'ArrayExpression' <|
+    \node ->
+        arrayExpression(
+            _unparse(node.elements));
+
+addRewrite@'ObjectExpression' <|
+    \node ->
+        objectExpression(
+            _unparse(node.properties));
+
+addRewrite@'ObjectValue' <|
+    \node ->
+        objectValueExpression(
+            _unparse(node.key),
+            _unparse(node.value));
+
+addRewrite@'ObjectGetter' <|
+    \node ->
+        objectGetExpression(
+            _unparse(node.key),
+            _unparse(node.value.body));
     
-    case 'ObjectValue':
-        return objectValueExpression(_unparse(node.key), _unparse(node.value));
-    
-    case 'ObjectGetter':
-        return objectGetExpression(_unparse(node.key), _unparse(node.value.body));
-        
-    case 'ObjectSetter':
-        return objectSetExpression(_unparse(node.key), node.value.params.map(_unparse), _unparse(node.value.body));
+addRewrite@'ObjectSetter' <|
+    \node ->
+        objectSetExpression(
+            _unparse(node.key),
+            _unparse(node.value.params),
+            _unparse(node.value.body));
 
 // Function
-    case 'FunctionExpression':
-        return functionExpression(
-            ?node.id
-                :_unparse(node.id)
-                :null,
-            node.params.map(_unparse),
-            _unparse(node.body));
-        
-    case 'FunctionDeclaration':
-        return functionDeclaration(
+addRewrite@'FunctionExpression' <|
+    \node ->
+        functionExpression(
             _unparse(node.id),
-            node.params.map(_unparse),
+            _unparse(node.params),
+            _unparse(node.body));
+    
+addRewrite@'FunctionDeclaration' <|
+    \node ->
+        functionDeclaration(
+            _unparse(node.id),
+            _unparse(node.params),
             _unparse(node.body));
 
 // Program
-    case 'Program':
-        return program(node.body.map(_unparse));
+addRewrite@'Program' <|
+    \node ->  program(node.body.map(_unparse));
 
 // Declarations
-    case 'VariableDeclaration':
-        return variableDeclaration(node.declarations.map(_unparse));
-        
-    case 'VariableDeclarator':
-        return variableDeclarator(
+addRewrite@'VariableDeclaration' <|
+    \node ->
+        variableDeclaration(
+            _unparse(node.declarations));
+    
+addRewrite@'VariableDeclarator' <|
+    \node ->
+        variableDeclarator(
             _unparse(node.id),
             ?node.init
                 :_unparse(node.init)
                 :null);
 
-// Value
-    case 'Identifier':
-        return identifier node.name;
-    
-    case 'Literal':
+// Values
+addRewrite@'Identifier' <|
+    \node ->
+        identifier node.name;
+
+addRewrite@'Literal' <|
+    \node -> {
         switch (node.kind) {
         case 'string':
             return string(node.value);
@@ -714,10 +760,23 @@ var _unparse = \node -> {
         default:
             return NIL;
         }
-        
-    default:
+    };
+
+/**
+ * Transforms a AST node to a stream of tokens.
+ */
+_unparse = \node -> {
+    if (!node)
         return NIL;
-    }
+    
+    if (Array.isArray(node))
+        return node.map(_unparse);
+    
+    var rewrite := rewrites.(node.type);
+    if (rewrite)
+        return rewrite(node);
+    return NIL;
+    
 };
 
 /* Exported

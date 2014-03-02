@@ -6,16 +6,14 @@ define(["require", "exports", "nu-stream/stream", "ecma-ast/token", "ecma-ast/no
     stream, token, node) {
     "use strict";
     var NIL = stream["NIL"],
+        cons = stream["cons"],
         unparse, slice = Array.prototype.slice,
-        join = (function(arr, joiner) {
-            if ((arr.length === 0)) return NIL;
-            else if ((arr.length === 1)) return arr[0];
-            else return stream.append(arr[0], stream.cons(joiner, join(arr.slice(1), joiner)));
-        }),
         joins = (function(arr, joiner) {
-            if ((arr.length === 0)) return NIL;
-            else if ((arr.length === 1)) return arr[0];
-            else return stream.append(arr[0], stream.append(joiner, joins(arr.slice(1), joiner)));
+            return ((!arr.length) ? NIL : ((arr.length === 1) ? arr[0] : stream.append(arr[0], stream.append(
+                joiner, joins(arr.slice(1), joiner)))));
+        }),
+        join = (function(arr, joiner) {
+            return joins(arr, cons(joiner, NIL));
         }),
         keyword = (function(x) {
             return new(token.KeywordToken)(null, x);
@@ -214,120 +212,162 @@ define(["require", "exports", "nu-stream/stream", "ecma-ast/token", "ecma-ast/no
         objectValueExpression = (function(key, value) {
             return seq(key, punctuator(":"), space, value);
         }),
-        _unparse = (function(node) {
-            if ((!node)) return NIL;
-            switch (node.type) {
-                case "SwitchCase":
-                    return switchCase((node.test ? _unparse(node.test) : null), node.consequent.map(
-                        _unparse));
-                case "CatchClause":
-                    return catchClause(_unparse(node.param), _unparse(node.body));
-                case "EmptyStatement":
-                    return emptyStatement();
-                case "DebuggerStatement":
-                    return debuggerStatement();
-                case "BlockStatement":
-                    return blockStatement(node.body.map(_unparse));
-                case "ExpressionStatement":
-                    return expressionStatement(_unparse(node.expression));
-                case "IfStatement":
-                    return ifStatement(_unparse(node.test), _unparse(node.consequent), (node.alternate ?
-                        _unparse(node.alternate) : null));
-                case "LabeledStatement":
-                    return labeledStatement(_unparse(node.label), _unparse(node.body));
-                case "BreakStatement":
-                    return breakStatement(_unparse(node.label));
-                case "ContinueStatement":
-                    return continueStatement(_unparse(node.label));
-                case "WithStatement":
-                    return withStatement(_unparse(node.object), _unparse(node.body));
-                case "SwitchStatement":
-                    return switchStatement(_unparse(node.discriminant), node.cases.map(_unparse));
-                case "ReturnStatement":
-                    return returnStatement(_unparse(node.argument));
-                case "ThrowStatement":
-                    return throwStatement(_unparse(node.argument));
-                case "TryStatement":
-                    return tryStatement(_unparse(node.block), (node.handler ? _unparse(node.handler) : null), (
-                        node.finalizer ? _unparse(node.finalizer) : null));
-                case "WhileStatement":
-                    return whileStatement(_unparse(node.test), _unparse(node.body));
-                case "DoWhileStatement":
-                    return doWhileStatement(_unparse(node.body), _unparse(node.test));
-                case "ForStatement":
-                    var init = (node.init ? _unparse(node.init) : null);
-                    var test = (node.test ? _unparse(node.test) : null);
-                    var update = (node.update ? _unparse(node.update) : null);
-                    var body = _unparse(node.body);
-                    return ((node.init && (node.init.type === "VariableDeclaration")) ?
-                        forDeclarationStatement(init, test, update, body) : forStatement(init, test, update,
-                            body));
-                case "ForInStatement":
-                    return forInStatement(_unparse(node.left), _unparse(node.right), _unparse(node.body));
-                case "ThisExpression":
-                    return thisExpression();
-                case "SequenceExpression":
-                    return sequenceExpression(node.expressions.map(_unparse));
-                case "UnaryExpression":
-                    return unaryExpression(punctuator(node.operator), _unparse(node.argument));
-                case "BinaryExpression":
-                case "LogicalExpression":
-                case "AssignmentExpression":
-                    return binaryExpression(punctuator(node.operator), _unparse(node.left), _unparse(node.right));
-                case "UpdateExpression":
-                    return updateExpression(punctuator(node.operator), _unparse(node.argument), node.prefix);
-                case "ConditionalExpression":
-                    return conditionalExpression(_unparse(node.test), _unparse(node.consequent), _unparse(
-                        node.alternate));
-                case "NewExpression":
-                    return newExpression(_unparse(node.callee), (node.args ? node.args.map(_unparse) : null));
-                case "CallExpression":
-                    return callExpression(_unparse(node.callee), node.args.map(_unparse));
-                case "MemberExpression":
-                    return memberExpression(_unparse(node.object), _unparse(node.property), node.computed);
-                case "ArrayExpression":
-                    return arrayExpression(node.elements.map(_unparse));
-                case "ObjectExpression":
-                    return objectExpression(node.properties.map(_unparse));
-                case "ObjectValue":
-                    return objectValueExpression(_unparse(node.key), _unparse(node.value));
-                case "ObjectGetter":
-                    return objectGetExpression(_unparse(node.key), _unparse(node.value.body));
-                case "ObjectSetter":
-                    return objectSetExpression(_unparse(node.key), node.value.params.map(_unparse),
-                        _unparse(node.value.body));
-                case "FunctionExpression":
-                    return functionExpression((node.id ? _unparse(node.id) : null), node.params.map(
-                        _unparse), _unparse(node.body));
-                case "FunctionDeclaration":
-                    return functionDeclaration(_unparse(node.id), node.params.map(_unparse), _unparse(node.body));
-                case "Program":
-                    return program(node.body.map(_unparse));
-                case "VariableDeclaration":
-                    return variableDeclaration(node.declarations.map(_unparse));
-                case "VariableDeclarator":
-                    return variableDeclarator(_unparse(node.id), (node.init ? _unparse(node.init) : null));
-                case "Identifier":
-                    return identifier(node.name);
-                case "Literal":
-                    switch (node.kind) {
-                        case "string":
-                            return string(node.value);
-                        case "number":
-                            return number(node.value);
-                        case "null":
-                            return nil(node.value);
-                        case "boolean":
-                            return boolean(node.value);
-                        case "regexp":
-                            return regexp(node.value);
-                        default:
-                            return NIL;
-                    }
-                default:
-                    return NIL;
-            }
-        });
+        rewrites = ({}),
+        addRewrite = (function(type, check) {
+            if (Array.isArray(type)) type.forEach((function(x) {
+                return addRewrite(x, check);
+            }));
+            else(rewrites[type] = check);
+        }),
+        _unparse;
+    addRewrite("SwitchCase", (function(node) {
+        return switchCase((node.test ? _unparse(node.test) : null), _unparse(node.consequent));
+    }));
+    addRewrite("CatchClause", (function(node) {
+        return catchClause(_unparse(node.param), _unparse(node.body));
+    }));
+    addRewrite("EmptyStatement", (function(node) {
+        return emptyStatement();
+    }));
+    addRewrite("DebuggerStatement", (function(node) {
+        return debuggerStatement();
+    }));
+    addRewrite("BlockStatement", (function(node) {
+        return blockStatement(_unparse(node.body));
+    }));
+    addRewrite("ExpressionStatement", (function(node) {
+        return expressionStatement(_unparse(node.expression));
+    }));
+    addRewrite("IfStatement", (function(node) {
+        return ifStatement(_unparse(node.test), _unparse(node.consequent), (node.alternate ? _unparse(
+            node.alternate) : null));
+    }));
+    addRewrite("LabeledStatement", (function(node) {
+        return labeledStatement(_unparse(node.label), _unparse(node.body));
+    }));
+    addRewrite("BreakStatement", (function(node) {
+        return breakStatement(_unparse(node.label));
+    }));
+    addRewrite("ContinueStatement", (function(node) {
+        return continueStatement(_unparse(node.label));
+    }));
+    addRewrite("WithStatement", (function(node) {
+        return withStatement(_unparse(node.object), _unparse(node.body));
+    }));
+    addRewrite("SwitchStatement", (function(node) {
+        return switchStatement(_unparse(node.discriminant), node.cases.map(_unparse));
+    }));
+    addRewrite("ReturnStatement", (function(node) {
+        return returnStatement(_unparse(node.argument));
+    }));
+    addRewrite("ThrowStatement", (function(node) {
+        return throwStatement(_unparse(node.argument));
+    }));
+    addRewrite("TryStatement", (function(node) {
+        return tryStatement(_unparse(node.block), (node.handler ? _unparse(node.handler) : null), (node
+            .finalizer ? _unparse(node.finalizer) : null));
+    }));
+    addRewrite("WhileStatement", (function(node) {
+        return whileStatement(_unparse(node.test), _unparse(node.body));
+    }));
+    addRewrite("DoWhileStatement", (function(node) {
+        return doWhileStatement(_unparse(node.body), _unparse(node.test));
+    }));
+    addRewrite("ForStatement", (function(node) {
+        var init = (node.init ? _unparse(node.init) : null),
+            test = (node.test ? _unparse(node.test) : null),
+            update = (node.update ? _unparse(node.update) : null),
+            body = _unparse(node.body);
+        return ((node.init && (node.init.type === "VariableDeclaration")) ? forDeclarationStatement(
+            init, test, update, body) : forStatement(init, test, update, body));
+    }));
+    addRewrite("ForInStatement", (function(node) {
+        return forInStatement(_unparse(node.left), _unparse(node.right), _unparse(node.body));
+    }));
+    addRewrite("ThisExpression", (function(node) {
+        return thisExpression();
+    }));
+    addRewrite("SequenceExpression", (function(node) {
+        return sequenceExpression(_unparse(node.expressions));
+    }));
+    addRewrite("UnaryExpression", (function(node) {
+        return unaryExpression(punctuator(node.operator), _unparse(node.argument));
+    }));
+    addRewrite(["BinaryExpression", "LogicalExpression", "AssignmentExpression"], (function(node) {
+        return binaryExpression(punctuator(node.operator), _unparse(node.left), _unparse(node.right));
+    }));
+    addRewrite("UpdateExpression", (function(node) {
+        return updateExpression(punctuator(node.operator), _unparse(node.argument), node.prefix);
+    }));
+    addRewrite("ConditionalExpression", (function(node) {
+        return conditionalExpression(_unparse(node.test), _unparse(node.consequent), _unparse(node.alternate));
+    }));
+    addRewrite("NewExpression", (function(node) {
+        return newExpression(_unparse(node.callee), _unparse(node.args));
+    }));
+    addRewrite("CallExpression", (function(node) {
+        return callExpression(_unparse(node.callee), node.args.map(_unparse));
+    }));
+    addRewrite("MemberExpression", (function(node) {
+        return memberExpression(_unparse(node.object), _unparse(node.property), node.computed);
+    }));
+    addRewrite("ArrayExpression", (function(node) {
+        return arrayExpression(_unparse(node.elements));
+    }));
+    addRewrite("ObjectExpression", (function(node) {
+        return objectExpression(_unparse(node.properties));
+    }));
+    addRewrite("ObjectValue", (function(node) {
+        return objectValueExpression(_unparse(node.key), _unparse(node.value));
+    }));
+    addRewrite("ObjectGetter", (function(node) {
+        return objectGetExpression(_unparse(node.key), _unparse(node.value.body));
+    }));
+    addRewrite("ObjectSetter", (function(node) {
+        return objectSetExpression(_unparse(node.key), _unparse(node.value.params), _unparse(node.value
+            .body));
+    }));
+    addRewrite("FunctionExpression", (function(node) {
+        return functionExpression(_unparse(node.id), _unparse(node.params), _unparse(node.body));
+    }));
+    addRewrite("FunctionDeclaration", (function(node) {
+        return functionDeclaration(_unparse(node.id), _unparse(node.params), _unparse(node.body));
+    }));
+    addRewrite("Program", (function(node) {
+        return program(node.body.map(_unparse));
+    }));
+    addRewrite("VariableDeclaration", (function(node) {
+        return variableDeclaration(_unparse(node.declarations));
+    }));
+    addRewrite("VariableDeclarator", (function(node) {
+        return variableDeclarator(_unparse(node.id), (node.init ? _unparse(node.init) : null));
+    }));
+    addRewrite("Identifier", (function(node) {
+        return identifier(node.name);
+    }));
+    addRewrite("Literal", (function(node) {
+        switch (node.kind) {
+            case "string":
+                return string(node.value);
+            case "number":
+                return number(node.value);
+            case "null":
+                return nil(node.value);
+            case "boolean":
+                return boolean(node.value);
+            case "regexp":
+                return regexp(node.value);
+            default:
+                return NIL;
+        }
+    }));
+    (_unparse = (function(node) {
+        if ((!node)) return NIL;
+        if (Array.isArray(node)) return node.map(_unparse);
+        var rewrite = rewrites[node.type];
+        if (rewrite) return rewrite(node);
+        return NIL;
+    }));
     (unparse = _unparse);
     (exports.unparse = unparse);
 }));
