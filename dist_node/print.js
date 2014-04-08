@@ -1,3 +1,7 @@
+/*
+ * THIS FILE IS AUTO GENERATED FROM 'lib/print.kep'
+ * DO NOT EDIT
+*/
 "use strict";
 var __o = require("nu-stream")["stream"],
     foldl = __o["foldl"],
@@ -7,7 +11,7 @@ var __o = require("nu-stream")["stream"],
         return (x + y);
     }), ""),
     mapTokens = map.bind(null, (function(x) {
-        if (!x) return "";
+        if ((!x)) return "";
         switch (x.type) {
             case "Null":
                 return "null";
@@ -31,11 +35,11 @@ var __o = require("nu-stream")["stream"],
     return (function(x) {
         return f(g(x));
     });
-})((function(x) {
-    return beautify(x, options);
-}), (function(f, g) {
+})((function(f, g) {
     return (function(x) {
         return f(g(x));
     });
-})(join, mapTokens)));
-(exports.print = print);
+})((function(x) {
+    return beautify(x, options);
+}), join), mapTokens));
+(exports["print"] = print);

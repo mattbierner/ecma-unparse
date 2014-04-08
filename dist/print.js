@@ -1,5 +1,5 @@
 /*
- * THIS FILE IS AUTO GENERATED from 'lib/print.kep'
+ * THIS FILE IS AUTO GENERATED FROM 'lib/print.kep'
  * DO NOT EDIT
 */
 define(["require", "exports", "nu-stream/stream", "./beautify"], (function(require, exports, __o, js_beautify) {
@@ -34,12 +34,12 @@ define(["require", "exports", "nu-stream/stream", "./beautify"], (function(requi
         return (function(x) {
             return f(g(x));
         });
-    })((function(x) {
-        return beautify(x, options);
-    }), (function(f, g) {
+    })((function(f, g) {
         return (function(x) {
             return f(g(x));
         });
-    })(join, mapTokens)));
-    (exports.print = print);
+    })((function(x) {
+        return beautify(x, options);
+    }), join), mapTokens));
+    (exports["print"] = print);
 }));

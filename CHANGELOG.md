@@ -1,5 +1,8 @@
 # ChangeLog #
 
+## 3.3.0 - April 8, 2014
+* Updated deps
+
 ## 3.2.5 - Feb 13, 2014
 * Fixed sequence expression potential precedence issue.
 

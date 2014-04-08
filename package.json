@@ -1,6 +1,6 @@
 {
     "name": "ecma-unparse",
-    "version": "3.2.5",
+    "version": "3.3.0",
     "description": "Simple ECMAscript AST to text transform",
     "author": "Matt Bierner",
     "license": "MIT",
@@ -23,7 +23,13 @@
         "test.js"
     ],
     "dependencies": {
-        "nu-stream": "3.1.x",
-        "ecma-ast": "2.4.x"
+        "nu-stream": ">=3.2.0",
+        "ecma-ast": ">=2.5.0"
+    },
+    
+    "scripts": {
+        "build": "npm run build-amd && npm run build-node",
+        "build-amd": "khepri lib -o dist",
+        "build-node": "khepri lib -o dist_node --package_manager=node"
     }
 }

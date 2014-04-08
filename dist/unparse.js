@@ -1,8 +1,7 @@
 /*
  * THIS FILE IS AUTO GENERATED from 'lib/unparse.kep'
  * DO NOT EDIT
-*/
-define(["require", "exports", "nu-stream/stream", "ecma-ast/token", "ecma-ast/node"], (function(require, exports,
+*/define(["require", "exports", "nu-stream/stream", "ecma-ast/token", "ecma-ast/node"], (function(require, exports,
     stream, token, node) {
     "use strict";
     var NIL = stream["NIL"],
@@ -226,12 +225,8 @@ define(["require", "exports", "nu-stream/stream", "ecma-ast/token", "ecma-ast/no
     addRewrite("CatchClause", (function(node) {
         return catchClause(_unparse(node.param), _unparse(node.body));
     }));
-    addRewrite("EmptyStatement", (function(node) {
-        return emptyStatement();
-    }));
-    addRewrite("DebuggerStatement", (function(node) {
-        return debuggerStatement();
-    }));
+    addRewrite("EmptyStatement", emptyStatement);
+    addRewrite("DebuggerStatement", debuggerStatement);
     addRewrite("BlockStatement", (function(node) {
         return blockStatement(_unparse(node.body));
     }));
@@ -369,5 +364,5 @@ define(["require", "exports", "nu-stream/stream", "ecma-ast/token", "ecma-ast/no
         return NIL;
     }));
     (unparse = _unparse);
-    (exports.unparse = unparse);
+    (exports["unparse"] = unparse);
 }));
